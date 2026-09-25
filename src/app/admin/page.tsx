@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app-header";
 import { buildDashboard, loadDashboardData } from "@/lib/admin/dashboard";
+import { loadSyncStatus, type SyncStatus } from "@/lib/admin/sync-status";
 import { requireRole } from "@/lib/auth";
 import { CHANNELS } from "@/lib/calendar/channels";
 import { parseAdminFilters } from "@/lib/calendar/filters";
 import { formatDate, todayKey } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
+import { AutoRefresh } from "./_components/auto-refresh";
 import { FilterBar } from "./_components/filter-bar";
 import { RangeNav } from "./_components/range-nav";
+import { RefreshButton } from "./_components/refresh-button";
 import { TapeChart } from "./_components/tape-chart";
 import { TurnoverPanel, UpcomingList } from "./_components/turnovers";
 
 export const metadata: Metadata = { title: "Calendar" };
+
+// "Refresh now" runs a full sync inside a server action on this page.
+export const maxDuration = 60;
 
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const user = await requireRole("admin");
@@ -20,17 +26,25 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const today = todayKey(now);
   const requested = parseAdminFilters(await searchParams, today);
   const supabase = await createClient();
-  const data = await loadDashboardData(supabase, requested, today);
+  const [data, syncStatus] = await Promise.all([
+    loadDashboardData(supabase, requested, today),
+    loadSyncStatus(supabase, now),
+  ]);
   const dashboard = buildDashboard(data, requested, today, now);
   const monthLabel = formatDate(dashboard.occupancyMonth.start, { weekday: undefined, day: undefined });
 
   return (
     <>
-      <AppHeader user={user} />
+      <AppHeader user={user} active="calendar" />
+      <AutoRefresh />
       <main className="mx-auto flex w-full max-w-screen-2xl flex-col gap-4 p-4">
+        <SyncBar status={syncStatus} />
         <FilterBar
           key={JSON.stringify(dashboard.filters)}
-          filters={dashboard.filters} owners={dashboard.owners} properties={dashboard.propertyOptions} />
+          filters={dashboard.filters}
+          owners={dashboard.owners}
+          properties={dashboard.propertyOptions}
+        />
 
         {/* Mobile: a list of upcoming turnovers instead of the tape chart. */}
         <div className="md:hidden">
@@ -52,6 +66,24 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
         </div>
       </main>
     </>
+  );
+}
+
+function SyncBar({ status }: { status: SyncStatus }) {
+  const tone = {
+    ok: "border-emerald-200 bg-emerald-50 text-emerald-950",
+    warning: "border-amber-200 bg-amber-50 text-amber-950",
+    error: "border-red-200 bg-red-50 text-red-950",
+    unknown: "border-slate-200 bg-white text-slate-700",
+  }[status.tone];
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-2 text-sm ${tone}`}>
+      <p>
+        <span className="font-medium">{status.text}</span>
+        {status.detail && <span> · {status.detail}</span>}
+      </p>
+      <RefreshButton />
+    </div>
   );
 }
 

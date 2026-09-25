@@ -1,0 +1,127 @@
+import type { Metadata } from "next";
+import { AppHeader } from "@/components/app-header";
+import { loadManagedProperties, loadOwnerOptions, type ManagedChannel } from "@/lib/admin/manage";
+import { requireRole } from "@/lib/auth";
+import { CHANNELS } from "@/lib/calendar/channels";
+import { formatRelative } from "@/lib/calendar/stats";
+import { createClient } from "@/lib/supabase/server";
+import { deleteChannel, deleteProperty } from "../actions";
+import { DeleteButton } from "../_components/delete-button";
+import { RefreshButton } from "../_components/refresh-button";
+import { ChannelForm } from "./_components/channel-form";
+import { PropertyForm } from "./_components/property-form";
+
+export const metadata: Metadata = { title: "Properties" };
+
+// Adding a channel runs its first sync inside the server action.
+export const maxDuration = 60;
+
+export default async function PropertiesPage() {
+  const user = await requireRole("admin");
+  const supabase = await createClient();
+  const [properties, owners] = await Promise.all([loadManagedProperties(supabase), loadOwnerOptions(supabase)]);
+  const ownerName = new Map(owners.map((o) => [o.id, o.name]));
+  const now = new Date();
+
+  return (
+    <>
+      <AppHeader user={user} active="properties" />
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-xl font-semibold">Properties ({properties.length})</h1>
+          <RefreshButton label="Sync all now" />
+        </div>
+
+        <details className="rounded-xl border border-slate-200 bg-white p-4">
+          <summary className="cursor-pointer font-medium">Add a property</summary>
+          <div className="mt-4">
+            <PropertyForm owners={owners} />
+          </div>
+        </details>
+
+        {properties.map((p) => (
+          <section key={p.id} aria-label={p.name} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="flex items-center gap-2 font-semibold">
+                  <span className="size-3 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
+                  {p.name}
+                </h2>
+                <p className="text-sm text-slate-600">
+                  {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "No owner", p.booking_property_id && `Booking.com ID ${p.booking_property_id}`]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+              <DeleteButton
+                action={deleteProperty}
+                id={p.id}
+                label="Delete"
+                confirmText={`Delete ${p.name} with all its channels and reservations? This cannot be undone.`}
+              />
+            </div>
+
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm text-slate-700">Edit details</summary>
+              <div className="mt-3">
+                <PropertyForm
+                  owners={owners}
+                  values={{
+                    id: p.id,
+                    name: p.name,
+                    address: p.address,
+                    owner_id: p.owner_id,
+                    color: p.color,
+                    booking_property_id: p.booking_property_id,
+                  }}
+                />
+              </div>
+            </details>
+
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-medium text-slate-700">Channels</h3>
+                {p.channels.length > 0 && <RefreshButton propertyId={p.id} label="Sync this property" />}
+              </div>
+              {p.channels.length === 0 ? (
+                <p className="mb-3 text-sm text-slate-500">No channels yet. Paste the iCal export link from Booking.com or Airbnb.</p>
+              ) : (
+                <ul className="mb-3 flex flex-col divide-y divide-slate-100">
+                  {p.channels.map((c) => (
+                    <ChannelRow key={c.id} channel={c} now={now} />
+                  ))}
+                </ul>
+              )}
+              <ChannelForm propertyId={p.id} />
+            </div>
+          </section>
+        ))}
+      </main>
+    </>
+  );
+}
+
+function ChannelRow({ channel: c, now }: { channel: ManagedChannel; now: Date }) {
+  return (
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
+      <span className="h-2.5 w-5 rounded-full" style={{ backgroundColor: CHANNELS[c.source].color }} aria-hidden />
+      <span className="font-medium">{CHANNELS[c.source].label}</span>
+      <code className="text-xs text-slate-500">{c.maskedUrl}</code>
+      <span className={`text-xs ${c.lastSyncError ? "text-red-700" : "text-slate-500"}`}>
+        {c.lastSyncError
+          ? `Error: ${c.lastSyncError}`
+          : c.lastSyncedAt
+            ? `Synced ${formatRelative(new Date(c.lastSyncedAt), now)}`
+            : "Never synced"}
+      </span>
+      <span className="ml-auto">
+        <DeleteButton
+          action={deleteChannel}
+          id={c.id}
+          label="Remove"
+          confirmText={`Remove this ${CHANNELS[c.source].label} channel and its reservations?`}
+        />
+      </span>
+    </li>
+  );
+}

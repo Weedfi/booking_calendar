@@ -1,3 +1,5 @@
+import { generateDemoFeed, isDemoUrl } from "./demo-feed";
+
 export type FetchIcal = (url: string) => Promise<string>;
 
 export class FeedFetchError extends Error {
@@ -14,6 +16,12 @@ const TIMEOUT_MS = 15_000;
  * are stored in channels.last_sync_error and iCal URLs are secrets.
  */
 export const fetchIcal: FetchIcal = async (url) => {
+  if (isDemoUrl(url)) {
+    // Seed data points at generated feeds; only served when explicitly enabled.
+    if (process.env.DEMO_FEEDS !== "true") throw new FeedFetchError("Demo feeds are disabled");
+    return generateDemoFeed(url);
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {

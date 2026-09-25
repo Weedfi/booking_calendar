@@ -1,0 +1,26 @@
+name: Sync calendars
+
+# Fallback sync every 5 minutes (GitHub's minimum; runs can be delayed).
+# The email trigger handles near real-time updates; this catches anything missed.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    # Skip quietly until the deployment secrets are configured.
+    if: ${{ vars.APP_URL != '' }}
+    steps:
+      - name: Call the sync endpoint
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/sync"

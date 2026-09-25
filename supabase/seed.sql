@@ -65,85 +65,24 @@ values
 
 -- ---------------------------------------------------------------------------
 -- Channels: every property is on Booking.com; every third is also on Airbnb.
--- URLs point at example.com and are placeholders only.
+-- demo:// URLs are served by the built-in demo feed generator
+-- (src/lib/sync/demo-feed.ts) when DEMO_FEEDS=true. No real feeds here.
+-- Reservations are not inserted directly: run `npm run sync` after a reset,
+-- so they come through the real sync pipeline.
 -- ---------------------------------------------------------------------------
-insert into public.channels (property_id, source, ical_url, last_synced_at, last_sync_error)
+with channel_sets as (
+  select
+    p.id,
+    p.booking_property_id,
+    case when p.booking_property_id::int % 3 = 0 then 'booking,airbnb' else 'booking' end as channels
+  from public.properties p
+)
+insert into public.channels (property_id, source, ical_url)
 select
-  p.id, 'booking',
-  'https://example.com/ical/booking/' || p.booking_property_id || '.ics',
-  now() - make_interval(mins => (row_number() over (order by p.id))::int % 5),
-  null
-from public.properties p;
-
-insert into public.channels (property_id, source, ical_url, last_synced_at, last_sync_error)
-select
-  p.id, 'airbnb',
-  'https://example.com/ical/airbnb/' || p.booking_property_id || '.ics',
-  now() - interval '3 minutes',
-  case when p.booking_property_id = '1000008' then 'HTTP 404 Not Found' end
-from public.properties p
-where p.booking_property_id::int % 3 = 0;
-
--- ---------------------------------------------------------------------------
--- Reservations: for each property, walk from 60 days ago to 120 days ahead,
--- alternating short gaps and stays. setseed() keeps the output reproducible.
--- ---------------------------------------------------------------------------
-do $$
-declare
-  prop      record;
-  chan      record;
-  cursor_day date;
-  nights    int;
-  n         int;
-begin
-  perform setseed(0.42);
-
-  for prop in select id from public.properties order by booking_property_id loop
-    cursor_day := current_date - 60 + floor(random() * 4)::int;
-    n := 0;
-
-    while cursor_day < current_date + 120 loop
-      nights := 1 + floor(random() * 7)::int;
-      n := n + 1;
-
-      -- Pick one of this property's channels at random.
-      select id, source into chan
-      from public.channels
-      where property_id = prop.id
-      order by random()
-      limit 1;
-
-      insert into public.reservations
-        (property_id, channel_id, source, external_uid, start_date, end_date, summary, status)
-      values (
-        prop.id, chan.id, chan.source,
-        'seed-' || left(prop.id::text, 8) || '-' || n || '@' || chan.source || '.demo',
-        cursor_day,
-        cursor_day + nights,
-        case chan.source
-          when 'booking' then 'CLOSED - Not available'
-          else 'Reserved'
-        end,
-        -- A few past stays show up as cancelled.
-        case when cursor_day < current_date and random() < 0.08
-          then 'cancelled'::public.reservation_status
-          else 'active'::public.reservation_status
-        end
-      );
-
-      -- Gap before the next stay: often back-to-back, sometimes a few days.
-      cursor_day := cursor_day + nights + floor(random() * random() * 6)::int;
-    end loop;
-  end loop;
-end;
-$$;
-
--- ---------------------------------------------------------------------------
--- A little sync history for the admin "last synced" indicator.
--- ---------------------------------------------------------------------------
-insert into public.sync_events (trigger, property_id, started_at, finished_at, ok, error)
-values
-  ('cron',   null, now() - interval '5 minutes', now() - interval '5 minutes' + interval '4 seconds', true,  null),
-  ('email',  'c0000000-0000-4000-8000-000000000003', now() - interval '12 minutes', now() - interval '12 minutes' + interval '1 second', true, null),
-  ('cron',   null, now() - interval '3 minutes', now() - interval '3 minutes' + interval '5 seconds', false, '1 of 20 channels failed: HTTP 404 Not Found'),
-  ('manual', null, now() - interval '1 minute',  now() - interval '1 minute' + interval '4 seconds', true,  null);
+  cs.id,
+  source::public.channel_source,
+  'demo://' || cs.booking_property_id || '/' || source || '?channels=' || cs.channels
+    -- One feed fails on purpose, so the demo shows how sync errors look.
+    || case when cs.booking_property_id = '1000008' and source = 'airbnb' then '&fail=404' else '' end
+from channel_sets cs
+cross join lateral unnest(string_to_array(cs.channels, ',')) as source;
