@@ -1,11 +1,8 @@
-import { dateKeyInZone, type DateKey } from "./dates";
+import { APP_TIMEZONE, dateKeyInZone, type DateKey } from "@/lib/dates";
 import { fetchIcal as defaultFetchIcal, type FetchIcal } from "./fetch-ical";
 import { parseIcal } from "./parse-ical";
 import { planChannelSync } from "./plan";
 import type { SyncChannel, SyncStore, SyncTrigger } from "./store";
-
-/** Timezone that defines "today" for cancellations (where the apartments are). */
-export const DEFAULT_TIMEZONE = "Europe/Warsaw";
 
 export type ChannelSyncResult =
   | { channelId: string; ok: true; upserted: number; cancelled: number }
@@ -44,7 +41,7 @@ export async function syncChannel(
  */
 export async function runSync(
   options: { trigger: SyncTrigger; propertyIds?: string[] },
-  { store, fetchIcal, now = () => new Date(), timeZone = DEFAULT_TIMEZONE }: Deps,
+  { store, fetchIcal, now = () => new Date(), timeZone = APP_TIMEZONE }: Deps,
 ): Promise<SyncRunResult> {
   const startedAt = now();
   const today = dateKeyInZone(startedAt, timeZone);

@@ -1,4 +1,4 @@
-import type { DateKey } from "./dates";
+import type { DateKey } from "@/lib/dates";
 import type { FeedEvent } from "./parse-ical";
 
 export type ReservationStatus = "active" | "cancelled";

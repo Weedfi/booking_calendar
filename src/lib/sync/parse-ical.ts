@@ -1,5 +1,5 @@
 import ical from "node-ical";
-import { addDays, dateKeyInZone, type DateKey } from "./dates";
+import { addDays, dateKeyInZone, type DateKey } from "@/lib/dates";
 
 /** One occupied range from a feed. endDate is the checkout day (exclusive). */
 export type FeedEvent = {
