@@ -195,8 +195,10 @@ export type Database = {
           error: string | null
           finished_at: string | null
           id: number
+          matched_by: Database["public"]["Enums"]["property_match"] | null
           ok: boolean | null
           property_id: string | null
+          received_at: string | null
           started_at: string
           trigger: Database["public"]["Enums"]["sync_trigger"]
         }
@@ -204,8 +206,10 @@ export type Database = {
           error?: string | null
           finished_at?: string | null
           id?: never
+          matched_by?: Database["public"]["Enums"]["property_match"] | null
           ok?: boolean | null
           property_id?: string | null
+          received_at?: string | null
           started_at?: string
           trigger: Database["public"]["Enums"]["sync_trigger"]
         }
@@ -213,8 +217,10 @@ export type Database = {
           error?: string | null
           finished_at?: string | null
           id?: never
+          matched_by?: Database["public"]["Enums"]["property_match"] | null
           ok?: boolean | null
           property_id?: string | null
+          received_at?: string | null
           started_at?: string
           trigger?: Database["public"]["Enums"]["sync_trigger"]
         }
@@ -237,6 +243,7 @@ export type Database = {
     }
     Enums: {
       channel_source: "booking" | "airbnb" | "other"
+      property_match: "booking_id" | "name" | "none"
       reservation_status: "active" | "cancelled"
       sync_trigger: "email" | "cron" | "manual"
       user_role: "admin" | "owner"
@@ -371,6 +378,7 @@ export const Constants = {
   public: {
     Enums: {
       channel_source: ["booking", "airbnb", "other"],
+      property_match: ["booking_id", "name", "none"],
       reservation_status: ["active", "cancelled"],
       sync_trigger: ["email", "cron", "manual"],
       user_role: ["admin", "owner"],

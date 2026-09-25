@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. Look-alike sender that must be ignored.",
+  "from": "Booking.com <noreply@booking.com.account-verify.example>",
+  "subject": "New booking! Property ID: 1000003",
+  "received_at": "2026-09-25T14:00:00Z",
+  "text": "Click here to confirm."
+}

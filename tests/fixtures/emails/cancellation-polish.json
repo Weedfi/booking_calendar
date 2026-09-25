@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. Polish-language notification with diacritics in the property name.",
+  "from": "noreply@booking.com",
+  "subject": "Anulowana rezerwacja: GUBAŁÓWKA PANORAMA",
+  "received_at": "2026-09-25T12:30:00Z",
+  "text": "Rezerwacja nr 4011112222 została anulowana przez gościa."
+}

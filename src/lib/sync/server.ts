@@ -1,12 +1,16 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runSync, type SyncRunResult } from "./run-sync";
-import type { SyncTrigger } from "./store";
+import type { EmailTriggerInfo, SyncTrigger } from "./store";
 import { createSupabaseSyncStore } from "./supabase-store";
 
 /** Runs a sync against the real database with the secret key. Server only. */
-export function syncNow(trigger: SyncTrigger, propertyIds?: string[]): Promise<SyncRunResult> {
-  return runSync({ trigger, propertyIds }, { store: createSupabaseSyncStore(createAdminClient()) });
+export function syncNow(
+  trigger: SyncTrigger,
+  propertyIds?: string[],
+  email?: EmailTriggerInfo,
+): Promise<SyncRunResult> {
+  return runSync({ trigger, propertyIds, email }, { store: createSupabaseSyncStore(createAdminClient()) });
 }
 
 /** Counts for logs and API responses. Never includes URLs or reservation data. */

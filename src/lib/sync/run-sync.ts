@@ -2,7 +2,7 @@ import { APP_TIMEZONE, dateKeyInZone, type DateKey } from "@/lib/dates";
 import { fetchIcal as defaultFetchIcal, type FetchIcal } from "./fetch-ical";
 import { parseIcal } from "./parse-ical";
 import { planChannelSync } from "./plan";
-import type { SyncChannel, SyncStore, SyncTrigger } from "./store";
+import type { EmailTriggerInfo, SyncChannel, SyncStore, SyncTrigger } from "./store";
 
 export type ChannelSyncResult =
   | { channelId: string; ok: true; upserted: number; cancelled: number }
@@ -40,13 +40,13 @@ export async function syncChannel(
  * run in sync_events. One failing channel never stops the others.
  */
 export async function runSync(
-  options: { trigger: SyncTrigger; propertyIds?: string[] },
+  options: { trigger: SyncTrigger; propertyIds?: string[]; email?: EmailTriggerInfo },
   { store, fetchIcal, now = () => new Date(), timeZone = APP_TIMEZONE }: Deps,
 ): Promise<SyncRunResult> {
   const startedAt = now();
   const today = dateKeyInZone(startedAt, timeZone);
   const propertyId = options.propertyIds?.length === 1 ? options.propertyIds[0] : null;
-  const eventId = await store.startSyncEvent({ trigger: options.trigger, propertyId, startedAt });
+  const eventId = await store.startSyncEvent({ trigger: options.trigger, propertyId, startedAt, email: options.email });
 
   const channels = await store.listChannels({ propertyIds: options.propertyIds });
 

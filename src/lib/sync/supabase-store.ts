@@ -76,10 +76,16 @@ export function createSupabaseSyncStore(db: SupabaseClient<Database>): SyncStore
       if (error) throw error;
     },
 
-    async startSyncEvent({ trigger, propertyId, startedAt }) {
+    async startSyncEvent({ trigger, propertyId, startedAt, email }) {
       const { data, error } = await db
         .from("sync_events")
-        .insert({ trigger, property_id: propertyId, started_at: startedAt.toISOString() })
+        .insert({
+          trigger,
+          property_id: propertyId,
+          started_at: startedAt.toISOString(),
+          received_at: email?.receivedAt.toISOString() ?? null,
+          matched_by: email?.matchedBy ?? null,
+        })
         .select("id")
         .single();
       if (error) throw error;

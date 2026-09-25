@@ -1,0 +1,9 @@
+name = "rental-calendar-email-trigger"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Replace with your deployment URL.
+SYNC_TRIGGER_URL = "https://your-app.vercel.app/api/sync-trigger"
+
+# SYNC_TRIGGER_SECRET is a secret: `npx wrangler secret put SYNC_TRIGGER_SECRET`

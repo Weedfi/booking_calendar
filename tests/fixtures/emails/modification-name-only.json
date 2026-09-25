@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. Only the property name identifies the property.",
+  "from": "Booking.com <reservations@mchat.booking.com>",
+  "subject": "Booking modified - Kazimierz Studio",
+  "received_at": "2026-09-25T11:00:00Z",
+  "text": "The guest changed their dates.\nNew check-out: 14 October 2026\nBooking number: 4099999999"
+}

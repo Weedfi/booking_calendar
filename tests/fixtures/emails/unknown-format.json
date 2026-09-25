@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. A format we cannot parse: must fall back to syncing everything.",
+  "from": "noreply@booking.com",
+  "subject": "Important update about your reservation",
+  "received_at": "2026-09-25T13:00:00Z",
+  "text": "Something changed. Log in to the extranet for details. Reference 4033334444."
+}

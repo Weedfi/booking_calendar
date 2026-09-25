@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. Not a real Booking.com email; format loosely modelled on notifications.",
+  "from": "\"Booking.com\" <noreply@booking.com>",
+  "subject": "New booking! (4012345678, Friday, 9 October 2026)",
+  "received_at": "2026-09-25T10:15:00Z",
+  "text": "You have a new booking.\nProperty: Wawel View Apartment\nProperty ID: 1000003\nBooking number: 4012345678\nCheck-in: Fri 9 Oct 2026\nCheck-out: Mon 12 Oct 2026\nGuest name: Jane Example\nTotal price: EUR 300"
+}
