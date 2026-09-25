@@ -65,7 +65,14 @@ export function LiveUpdates({ propertyNames }: { propertyNames: Record<string, s
         // topic (e.g. on a remount) would also drop the other subscription.
         .channel(`reservation-changes-${crypto.randomUUID()}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, onChange)
-        .subscribe((status) => setLive(status === "SUBSCRIBED"));
+        // SUBSCRIBED comes before changes actually stream; "Live" waits for
+        // the server's "Subscribed to PostgreSQL" system message instead.
+        .on("system", {}, (payload: { extension: string; status: string }) => {
+          if (payload.extension === "postgres_changes") setLive(payload.status === "ok");
+        })
+        .subscribe((status) => {
+          if (status !== "SUBSCRIBED") setLive(false);
+        });
     })();
 
     return () => {

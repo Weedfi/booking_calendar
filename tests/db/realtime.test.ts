@@ -20,9 +20,20 @@ async function subscribe(client: SupabaseClient, into: unknown[]) {
       into.push(payload.new);
     });
   await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error("Realtime was not ready in 20 s")), 20_000);
+    // SUBSCRIBED arrives before change streaming works; a change made in
+    // between is lost. Wait for the server's "Subscribed to PostgreSQL".
+    channel.on("system", {}, (payload: { extension: string; status: string }) => {
+      if (payload.extension === "postgres_changes" && payload.status === "ok") {
+        clearTimeout(timeout);
+        resolve();
+      }
+    });
     channel.subscribe((status, error) => {
-      if (status === "SUBSCRIBED") resolve();
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") reject(error ?? new Error(status));
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        clearTimeout(timeout);
+        reject(error ?? new Error(status));
+      }
     });
   });
   subscriptions.push({ client, channel });
