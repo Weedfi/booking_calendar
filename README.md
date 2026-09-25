@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rental Calendar Portal
 
-## Getting Started
+Booking calendars for a short-term rental manager and the owners of the apartments they run.
+The manager sees every property on one live tape chart; each owner signs in and sees only their own.
+Bookings come from Booking.com and Airbnb iCal feeds, and a Booking.com email triggers a sync within seconds.
 
-First, run the development server:
+Built with Next.js 16, Supabase (Postgres, Auth, Row Level Security, Realtime) and Vercel, on free tiers only.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+![Admin tape chart](docs/screenshots/admin-calendar.png)
+
+| Owner view (phone) | Admin on a phone | Managing properties |
+| --- | --- | --- |
+| ![Owner view](docs/screenshots/owner-mobile.png) | ![Admin mobile](docs/screenshots/admin-mobile.png) | ![Properties](docs/screenshots/admin-properties.png) |
+
+## Features
+
+**Manager (admin)**
+- Tape chart: properties by days, stays drawn from check-in afternoon to checkout morning, colored by channel. Overlapping stays (double bookings) get their own lane instead of hiding each other.
+- Today and tomorrow panel: check-outs and check-ins, with same-day turnovers flagged for the cleaning plan.
+- Filters for owner, property, channel and range (kept in the URL), plus week and month navigation.
+- Monthly occupancy and a "synced X min ago" / sync-error marker per property.
+- Live updates: new bookings and cancellations appear as toasts and on the chart without a reload.
+- Manage properties and iCal channels, and invite owners by email.
+- Phones get a list of upcoming check-ins and check-outs instead of the chart.
+
+**Owner**
+- Magic-link sign-in, no password.
+- Mobile-first month calendar with half-day check-in and checkout days, occupancy, booked nights and upcoming stays.
+- Only ever sees their own properties. The database enforces this, not the UI.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Channels
+    BK[Booking.com]
+    AB[Airbnb]
+  end
+
+  BK -- "notification email" --> MB[Manager's mailbox]
+  MB -- "auto-forward" --> CF["Cloudflare Email Routing<br/>+ Email Worker"]
+  CF -- "POST /api/sync-trigger<br/>(bearer secret)" --> APP
+
+  GH["GitHub Actions<br/>every 5 min"] -- "GET /api/cron/sync<br/>(bearer secret)" --> APP
+  ADM[Admin: Refresh now] --> APP
+
+  subgraph Vercel
+    APP["Next.js app<br/>sync service"]
+  end
+
+  APP -- "fetch .ics" --> BK
+  APP -- "fetch .ics" --> AB
+  APP -- "upsert / cancel<br/>(secret key)" --> DB[(Supabase Postgres<br/>RLS)]
+  DB -- "Realtime<br/>(RLS applied)" --> UI[Admin and owner browsers]
+  UI -- "reads as the signed-in user" --> DB
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### How a sync works
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. For every channel, fetch the `.ics` feed and parse its events with `node-ical`. `DTEND` is the checkout day and stays exclusive.
+2. Diff the feed against the database and write only what changed. A second run with the same feed writes nothing, so Realtime stays quiet.
+3. A future stay that disappeared from the feed is marked `cancelled`. Past and in-progress stays are kept, because feeds drop old events on their own.
+4. Record `last_synced_at` or `last_sync_error` on the channel, and log the run in `sync_events`.
+5. Channels sync in parallel, and one failing feed never stops the others.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+"Today" is computed in Europe/Warsaw, where the apartments are, not in the server's UTC.
 
-## Learn More
+### Three triggers
 
-To learn more about Next.js, take a look at the following resources:
+| Trigger | When | Notes |
+| --- | --- | --- |
+| Email | Seconds after Booking.com emails the manager | Finds the property by Booking.com ID, then by name, and syncs everything if unsure. Debounced for 20 s, with one follow-up sync 45 s later because Booking can update the feed after the email. |
+| Cron | Every 5 minutes (GitHub Actions) | The safety net. The Vercel free plan only allows daily cron jobs. |
+| Manual | "Refresh now" | For the whole portfolio or a single property. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **RLS is the source of truth.** Owners can read their own properties and reservations only. They have no access to `channels`, which hold the iCal URLs, or to `sync_events`. Tests sign in as real users and prove that one owner cannot read another's data, including over Realtime ([rls.test.ts](tests/db/rls.test.ts), [realtime.test.ts](tests/db/realtime.test.ts)).
+- **iCal URLs are secrets.** They are never selected for a page. The admin sees a masked `ical.booking.com/…a1b2`, and sync errors never contain the URL.
+- **Invite-only.** Sign-in never creates accounts, and a new user's role is always `owner`, whatever the signup metadata says.
+- **Protected endpoints.** Cron and webhook endpoints use bearer secrets with a constant-time comparison, and reject everything when no secret is configured. Every server action checks the admin role before touching data.
+- **The email is only a trigger.** Only its arrival time and how the property was matched are logged; the content is never stored (GDPR). Look-alike sender domains are rejected.
 
-## Deploy on Vercel
+## Tech stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Next.js 16 (App Router, Server Actions, `after()`), TypeScript, Tailwind CSS 4 · Supabase Postgres, Auth (magic link), RLS, Realtime · `node-ical` · Vitest · GitHub Actions · Cloudflare Email Workers.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
+
+```
+src/
+  app/                 routes: /admin, /admin/properties, /admin/owners, /owner, /login, /api/*
+  components/          header, forms, live updates
+  lib/
+    sync/              iCal fetch, parse, diff, run, Supabase store, demo feeds
+    email-trigger/     payload, sender check, property matching, handler
+    calendar/          tape chart layout, occupancy, filters
+    admin/ owner/      page view models and data loading
+    realtime/          change -> toast mapping
+supabase/
+  migrations/          schema, RLS policies, Realtime
+  seed.sql             fake demo data
+  templates/           magic link and invite emails
+tests/db/              integration tests against local Supabase
+workers/email-trigger/ Cloudflare Email Worker
+```
+
+Most logic lives in pure functions with unit tests next to them. Pages only load data and render.
+
+## Run it locally
+
+Requirements: Node 24 and Docker Desktop.
+
+```bash
+npm install
+npx supabase start            # local Postgres, Auth, Realtime, Mailpit
+cp .env.example .env.local    # then fill in the values from `npx supabase status -o env`
+npm run sync                  # import the demo feeds into the seed data
+npm run dev
+```
+
+Open http://127.0.0.1:3000 and sign in as `admin@example.com` (or the owner `anna@example.com`). The magic link arrives in Mailpit at http://127.0.0.1:54324.
+
+The seed data points at `demo://` feeds, which the app generates itself when `DEMO_FEEDS=true`. The whole sync pipeline runs for real without any Booking.com account, and one feed fails on purpose to show what sync errors look like.
+
+| Command | What it does |
+| --- | --- |
+| `npm test` | Unit tests |
+| `npm run test:db` | Integration tests (RLS, sync, Realtime); needs `supabase start` |
+| `npm run lint` / `npm run typecheck` | Static checks |
+| `npm run db:reset` | Recreate the local database from migrations and seed, then run `npm run sync` |
+| `npm run db:types` | Regenerate `src/lib/database.types.ts` |
+
+## Deploy (free tiers)
+
+1. **Supabase:** create a project, then `npx supabase link` and `npx supabase db push`. Add `--include-seed` only for a demo with fake data.
+   - Auth → URL configuration: set the Site URL to your Vercel URL and add `https://<your-app>/**` to the redirect URLs.
+   - Auth → Email templates: copy [magic_link.html](supabase/templates/magic_link.html) and [invite.html](supabase/templates/invite.html). The links must go to `/auth/confirm?token_hash=…`.
+   - The built-in email service only sends a few emails per hour, so set up custom SMTP (for example Resend's free tier) for real use.
+2. **Vercel:** import the repository and set these environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`
+   - `CRON_SECRET`, `SYNC_TRIGGER_SECRET` (long random strings)
+   - For the public demo only: `DEMO_MODE=true` and `DEMO_FEEDS=true`
+3. **GitHub:** add the repository variable `APP_URL` and the secret `CRON_SECRET`. The [sync workflow](.github/workflows/sync-cron.yml) then runs every 5 minutes.
+4. **Email trigger (optional):** follow [workers/email-trigger/README.md](workers/email-trigger/README.md).
+
+### Public demo
+
+With `DEMO_MODE=true`, the login page offers one-click sign-in as the demo manager or owner, and every change to properties, channels and owners is refused. Syncing, filters and live updates all keep working. Never enable it on a deployment with real data.
+
+## Design decisions
+
+- **iCal is the single source of truth.** Emails only say that something changed, which keeps the app read-only towards Booking.com and resilient to changes in the email format.
+- **Half-day bars** match how rentals work: a checkout morning and a check-in afternoon share a day.
+- **Server-rendered pages plus Realtime refresh** instead of client-side state: the server stays the single place that applies filters and RLS, and the browser only asks for a re-render.
+- **Serverless limits:** debounce state lives in `sync_events`, not in memory, and the follow-up sync runs in `after()` within the free plan's 60 s limit.
