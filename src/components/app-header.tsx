@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CurrentUser } from "@/lib/auth";
+import { isDemoMode } from "@/lib/demo";
 
 type Section = "calendar" | "properties" | "owners";
 
@@ -12,6 +13,11 @@ const ADMIN_NAV: { section: Section; href: string; label: string }[] = [
 export function AppHeader({ user, active }: { user: CurrentUser; active?: Section }) {
   return (
     <header className="border-b border-slate-200 bg-white">
+      {isDemoMode() && (
+        <p className="bg-indigo-600 px-4 py-1 text-center text-xs text-white">
+          Public demo with fake data. Changes are disabled; syncing and live updates work.
+        </p>
+      )}
       <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">

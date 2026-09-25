@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { parseChannel, parseInvite, parseProperty, type FieldErrors } from "@/lib/admin/forms";
 import { requireRole } from "@/lib/auth";
+import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { summarize, syncNow } from "@/lib/sync/server";
@@ -39,6 +40,12 @@ function submitted(form: FormData): Record<string, string> {
   return values;
 }
 
+/** For actions that change data: admins only, and never in the public demo. */
+async function blockedWrite(): Promise<ActionState | null> {
+  await requireRole("admin");
+  return isDemoMode() ? failure(DEMO_READ_ONLY_MESSAGE) : null;
+}
+
 function idFrom(form: FormData): string | null {
   const id = String(form.get("id") ?? "");
   return UUID.test(id) ? id : null;
@@ -69,7 +76,8 @@ export async function refreshNow(_prev: ActionState, form: FormData): Promise<Ac
 // ---------------------------------------------------------------------------
 
 export async function saveProperty(_prev: ActionState, form: FormData): Promise<ActionState> {
-  await requireRole("admin");
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
   const parsed = parseProperty(form);
   if (!parsed.ok) return invalid(parsed.errors, form);
 
@@ -89,7 +97,8 @@ export async function saveProperty(_prev: ActionState, form: FormData): Promise<
 }
 
 export async function deleteProperty(_prev: ActionState, form: FormData): Promise<ActionState> {
-  await requireRole("admin");
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
   const id = idFrom(form);
   if (!id) return failure("Unknown property.");
 
@@ -106,7 +115,8 @@ export async function deleteProperty(_prev: ActionState, form: FormData): Promis
 // ---------------------------------------------------------------------------
 
 export async function addChannel(_prev: ActionState, form: FormData): Promise<ActionState> {
-  await requireRole("admin");
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
   // Plain http is only accepted locally, for testing against a local feed.
   const parsed = parseChannel(form, { allowHttp: process.env.NODE_ENV !== "production" });
   if (!parsed.ok) return invalid(parsed.errors, form);
@@ -123,7 +133,8 @@ export async function addChannel(_prev: ActionState, form: FormData): Promise<Ac
 }
 
 export async function deleteChannel(_prev: ActionState, form: FormData): Promise<ActionState> {
-  await requireRole("admin");
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
   const id = idFrom(form);
   if (!id) return failure("Unknown channel.");
 
@@ -140,7 +151,8 @@ export async function deleteChannel(_prev: ActionState, form: FormData): Promise
 // ---------------------------------------------------------------------------
 
 export async function inviteOwner(_prev: ActionState, form: FormData): Promise<ActionState> {
-  await requireRole("admin");
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
   const parsed = parseInvite(form);
   if (!parsed.ok) return invalid(parsed.errors, form);
 

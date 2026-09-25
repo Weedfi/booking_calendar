@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser, homePath } from "@/lib/auth";
+import { isDemoMode } from "@/lib/demo";
+import { demoSignIn } from "./actions";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -23,8 +25,35 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             That sign-in link is invalid or has expired. Request a new one.
           </p>
         )}
+        {error === "demo" && (
+          <p role="alert" className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+            The demo sign-in did not work. Try again in a moment.
+          </p>
+        )}
+        {isDemoMode() && <DemoSignIn />}
         <LoginForm />
       </div>
     </main>
+  );
+}
+
+function DemoSignIn() {
+  const button = "flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium hover:bg-slate-100";
+  return (
+    <div className="mb-6 rounded-xl bg-indigo-50 p-4">
+      <p className="mb-3 text-sm text-indigo-950">
+        <span className="font-semibold">Public demo with fake data.</span> Look around as:
+      </p>
+      <div className="flex gap-2">
+        <form action={demoSignIn} className="flex flex-1">
+          <input type="hidden" name="account" value="admin" />
+          <button type="submit" className={button}>Manager (admin)</button>
+        </form>
+        <form action={demoSignIn} className="flex flex-1">
+          <input type="hidden" name="account" value="owner" />
+          <button type="submit" className={button}>Owner</button>
+        </form>
+      </div>
+    </div>
   );
 }
