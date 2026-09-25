@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
+import { LiveUpdates } from "@/components/live-updates";
 import { requireRole } from "@/lib/auth";
 import { CHANNELS } from "@/lib/calendar/channels";
 import { daysBetween, formatDate, todayKey, type DateKey } from "@/lib/dates";
@@ -55,9 +56,12 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
           </nav>
         )}
 
-        <div>
-          <h1 className="text-xl font-semibold">{view.property.name}</h1>
-          {view.property.address && <p className="text-sm text-slate-600">{view.property.address}</p>}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-semibold">{view.property.name}</h1>
+            {view.property.address && <p className="text-sm text-slate-600">{view.property.address}</p>}
+          </div>
+          <LiveUpdates propertyNames={Object.fromEntries(view.properties.map((p) => [p.id, p.name]))} />
         </div>
 
         <dl className="grid grid-cols-2 gap-3">

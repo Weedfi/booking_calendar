@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app-header";
+import { LiveUpdates } from "@/components/live-updates";
 import { buildDashboard, loadDashboardData } from "@/lib/admin/dashboard";
 import { loadSyncStatus, type SyncStatus } from "@/lib/admin/sync-status";
 import { requireRole } from "@/lib/auth";
@@ -38,7 +39,10 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       <AppHeader user={user} active="calendar" />
       <AutoRefresh />
       <main className="mx-auto flex w-full max-w-screen-2xl flex-col gap-4 p-4">
-        <SyncBar status={syncStatus} />
+        <SyncBar
+          status={syncStatus}
+          propertyNames={Object.fromEntries(data.properties.map((p) => [p.id, p.name]))}
+        />
         <FilterBar
           key={JSON.stringify(dashboard.filters)}
           filters={dashboard.filters}
@@ -69,7 +73,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   );
 }
 
-function SyncBar({ status }: { status: SyncStatus }) {
+function SyncBar({ status, propertyNames }: { status: SyncStatus; propertyNames: Record<string, string> }) {
   const tone = {
     ok: "border-emerald-200 bg-emerald-50 text-emerald-950",
     warning: "border-amber-200 bg-amber-50 text-amber-950",
@@ -82,7 +86,10 @@ function SyncBar({ status }: { status: SyncStatus }) {
         <span className="font-medium">{status.text}</span>
         {status.detail && <span> · {status.detail}</span>}
       </p>
-      <RefreshButton />
+      <div className="flex items-center gap-3">
+        <LiveUpdates propertyNames={propertyNames} />
+        <RefreshButton />
+      </div>
     </div>
   );
 }
