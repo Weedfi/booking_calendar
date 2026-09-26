@@ -1,10 +1,11 @@
 name: Sync calendars
 
-# Fallback sync every 5 minutes (GitHub's minimum; runs can be delayed).
+# Backup for the pg_cron schedule in Supabase (see the scheduled_sync migration).
+# GitHub may run it late on quiet repositories; that is fine for a backup.
 # The email trigger handles near real-time updates; this catches anything missed.
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions: {}

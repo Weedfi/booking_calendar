@@ -43,7 +43,7 @@ flowchart LR
   MB -- "auto-forward" --> CF["Cloudflare Email Routing<br/>+ Email Worker"]
   CF -- "POST /api/sync-trigger<br/>(bearer secret)" --> APP
 
-  GH["GitHub Actions<br/>every 5 min"] -- "GET /api/cron/sync<br/>(bearer secret)" --> APP
+  CRON["Supabase pg_cron<br/>every 5 min"] -- "GET /api/cron/sync<br/>(bearer secret)" --> APP
   ADM[Admin: Refresh now] --> APP
 
   subgraph Vercel
@@ -72,7 +72,7 @@ flowchart LR
 | Trigger | When | Notes |
 | --- | --- | --- |
 | Email | Seconds after Booking.com emails the manager | Finds the property by Booking.com ID, then by name, and syncs everything if unsure. Debounced for 20 s, with one follow-up sync 45 s later because Booking can update the feed after the email. |
-| Cron | Every 5 minutes (GitHub Actions) | The safety net. The Vercel free plan only allows daily cron jobs. |
+| Cron | Every 5 minutes (Supabase `pg_cron` + `pg_net`) | The safety net. The Vercel free plan only allows daily cron jobs, and GitHub Actions schedules can run hours late, so the database schedules it. A GitHub workflow stays as a backup. |
 | Manual | "Refresh now" | For the whole portfolio or a single property. |
 
 ## Security
@@ -143,7 +143,7 @@ The seed data points at `demo://` feeds, which the app generates itself when `DE
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`
    - `CRON_SECRET`, `SYNC_TRIGGER_SECRET` (long random strings)
    - For the public demo only: `DEMO_MODE=true` and `DEMO_FEEDS=true`
-3. **GitHub:** add the repository variable `APP_URL` and the secret `CRON_SECRET`. The [sync workflow](.github/workflows/sync-cron.yml) then runs every 5 minutes.
+3. **Scheduled sync:** in Supabase → Integrations → Vault, add the secrets `app_url` (your Vercel URL) and `cron_secret` (same value as `CRON_SECRET`). The `sync-calendars` pg_cron job ([migration](supabase/migrations/20260926090637_scheduled_sync.sql)) then calls the sync every 5 minutes. Optionally, also add the GitHub repository variable `APP_URL` and secret `CRON_SECRET` for the backup [workflow](.github/workflows/sync-cron.yml).
 4. **Email trigger (optional):** follow [workers/email-trigger/README.md](workers/email-trigger/README.md).
 
 ### Public demo
