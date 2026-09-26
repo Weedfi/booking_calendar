@@ -6,6 +6,8 @@ Bookings come from Booking.com and Airbnb iCal feeds, and a Booking.com email tr
 
 Built with Next.js 16, Supabase (Postgres, Auth, Row Level Security, Realtime) and Vercel, on free tiers only.
 
+**Live demo:** https://booking-calendar-demo.vercel.app. Fake data; sign in with one click as the manager or an owner.
+
 ![Admin tape chart](docs/screenshots/admin-calendar.png)
 
 | Owner view (phone) | Admin on a phone | Managing properties |
