@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. One Booking.com property with several apartments: the room name decides.",
+  "from": "Booking.com <noreply@booking.com>",
+  "subject": "Nowa rezerwacja! (4055556666, piątek, 16 października 2026)",
+  "received_at": "2026-09-27T20:00:00Z",
+  "text": "Obiekt: Orzechowa Przystań (ID obiektu: 1962640)\nPokój: Marynistyczny Apartament 4-osobowy\nZameldowanie: pt., 16 paź 2026\nWymeldowanie: pn., 19 paź 2026"
+}

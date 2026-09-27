@@ -57,3 +57,35 @@ describe("matchProperty edge cases", () => {
     expect(matchProperty("Wawel View Apartment, Kazimierz Studio", "", properties).propertyId).toBeNull();
   });
 });
+
+describe("matchProperty with several apartments in one Booking.com property", () => {
+  // One Booking.com property (1962640) with two apartments as room types.
+  const objectProperties: MatchableProperty[] = [
+    ...properties,
+    { id: "marynistyczny", name: "Marynistyczny Apartament 4-osobowy", bookingPropertyId: "1962640" },
+    { id: "lesny", name: "Leśny", bookingPropertyId: "1962640", bookingRoomName: "Leśny Apartament 2-osobowy" },
+  ];
+  const matchIn = (fixture: string) => {
+    const { subject, text } = email(fixture);
+    return matchProperty(subject, text, objectProperties);
+  };
+
+  it("uses the room name to pick the apartment within the property", () => {
+    expect(matchIn("multi-room-by-room-name")).toEqual({ propertyId: "marynistyczny", matchedBy: "name" });
+  });
+
+  it("uses the Booking.com room name when the app name is different", () => {
+    const result = matchProperty("Nowa rezerwacja", "ID obiektu: 1962640\nPokój: Leśny Apartament 2-osobowy", objectProperties);
+    expect(result).toEqual({ propertyId: "lesny", matchedBy: "name" });
+  });
+
+  it("syncs everything when the property is known but the room is not", () => {
+    expect(matchIn("multi-room-no-room-name")).toEqual({ propertyId: null, matchedBy: "none" });
+  });
+
+  it("only considers apartments of the matched property", () => {
+    // Old Town Loft is not part of property 1962640, so its name must not win.
+    const result = matchProperty("ID obiektu 1962640", "Wspomniano: Old Town Loft", objectProperties);
+    expect(result).toEqual({ propertyId: null, matchedBy: "none" });
+  });
+});

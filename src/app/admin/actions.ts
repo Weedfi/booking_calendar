@@ -51,10 +51,6 @@ function idFrom(form: FormData): string | null {
   return UUID.test(id) ? id : null;
 }
 
-function isUniqueViolation(error: { code?: string } | null): boolean {
-  return error?.code === "23505";
-}
-
 // ---------------------------------------------------------------------------
 // Sync
 // ---------------------------------------------------------------------------
@@ -87,9 +83,6 @@ export async function saveProperty(_prev: ActionState, form: FormData): Promise<
     ? await supabase.from("properties").update(parsed.value).eq("id", id)
     : await supabase.from("properties").insert(parsed.value);
 
-  if (isUniqueViolation(error)) {
-    return invalid({ booking_property_id: "Inne mieszkanie ma już to ID Booking.com." }, form);
-  }
   if (error) return failure("Nie udało się zapisać mieszkania. Spróbuj ponownie.");
 
   refresh();

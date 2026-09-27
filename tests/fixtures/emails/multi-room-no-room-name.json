@@ -1,0 +1,7 @@
+{
+  "_note": "Fake fixture. Shared Booking.com property ID but no room name: sync everything.",
+  "from": "noreply@booking.com",
+  "subject": "Anulowana rezerwacja - ID obiektu 1962640",
+  "received_at": "2026-09-27T21:00:00Z",
+  "text": "Rezerwacja 4077778888 została anulowana."
+}

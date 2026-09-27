@@ -21,12 +21,13 @@ export type ManagedProperty = {
   color: string;
   owner_id: string | null;
   booking_property_id: string | null;
+  booking_room_name: string | null;
   channels: ManagedChannel[];
 };
 
 export async function loadManagedProperties(supabase: SupabaseClient<Database>): Promise<ManagedProperty[]> {
   const [properties, channels] = await Promise.all([
-    supabase.from("properties").select("id, name, address, color, owner_id, booking_property_id").order("name"),
+    supabase.from("properties").select("id, name, address, color, owner_id, booking_property_id, booking_room_name").order("name"),
     supabase
       .from("channels")
       .select("id, property_id, source, ical_url, last_synced_at, last_sync_error")

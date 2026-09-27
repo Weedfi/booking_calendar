@@ -19,7 +19,7 @@ export function AppHeader({ user, active }: { user: CurrentUser; active?: Sectio
         </p>
       )}
       <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             Kalendarz rezerwacji
             {user.role === "admin" && (

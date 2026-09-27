@@ -11,6 +11,7 @@ export type PropertyFormValues = {
   owner_id: string | null;
   color: string;
   booking_property_id: string | null;
+  booking_room_name: string | null;
 };
 
 type Props = {
@@ -71,6 +72,20 @@ export function PropertyForm({ owners, values }: Props) {
           />
         </Field>
       </div>
+      <Field label="Nazwa pokoju w Booking.com (opcjonalnie)" name="booking_room_name" state={state}>
+        <input
+          name="booking_room_name"
+          placeholder="np. Marynistyczny Apartament 4-osobowy"
+          defaultValue={value("booking_room_name") ?? ""}
+          aria-invalid={Boolean(state.fieldErrors?.booking_room_name)}
+          className={inputClass}
+        />
+      </Field>
+      <p className="self-end text-xs text-slate-500">
+        Kilka apartamentów w jednym obiekcie Booking.com? Wpisz przy każdym ten sam numer obiektu i nazwę pokoju
+        taką jak w Booking.com (jeśli różni się od nazwy powyżej). Dzięki temu maile z Booking.com trafią do
+        właściwego apartamentu.
+      </p>
       <div className="flex items-center gap-3 sm:col-span-2">
         <SubmitButton pendingText="Zapisywanie…">{editing ? "Zapisz zmiany" : "Dodaj mieszkanie"}</SubmitButton>
         <FormMessage state={state} />

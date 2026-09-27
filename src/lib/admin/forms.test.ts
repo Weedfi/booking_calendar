@@ -14,7 +14,7 @@ describe("parseProperty", () => {
   it("accepts a complete property and normalizes empty fields to null", () => {
     expect(parseProperty(form({ name: "  Loft ", address: "", owner_id: OWNER_ID, color: "#EF4444", booking_property_id: "1000001" }))).toEqual({
       ok: true,
-      value: { name: "Loft", address: null, owner_id: OWNER_ID, color: "#ef4444", booking_property_id: "1000001" },
+      value: { name: "Loft", address: null, owner_id: OWNER_ID, color: "#ef4444", booking_property_id: "1000001", booking_room_name: null },
     });
   });
 

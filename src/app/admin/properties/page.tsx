@@ -48,7 +48,8 @@ export default async function PropertiesPage() {
                   {p.name}
                 </h2>
                 <p className="text-sm text-slate-600">
-                  {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "Bez właściciela", p.booking_property_id && `ID Booking.com: ${p.booking_property_id}`]
+                  {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "Bez właściciela", p.booking_property_id &&
+                      `Obiekt Booking.com ${p.booking_property_id}${p.booking_room_name ? ` · pokój: ${p.booking_room_name}` : ""}`]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -73,6 +74,7 @@ export default async function PropertiesPage() {
                     owner_id: p.owner_id,
                     color: p.color,
                     booking_property_id: p.booking_property_id,
+                    booking_room_name: p.booking_room_name,
                   }}
                 />
               </div>

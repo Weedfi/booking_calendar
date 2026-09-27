@@ -22,7 +22,7 @@ Built with Next.js 16, Supabase (Postgres, Auth, Row Level Security, Realtime) a
 - Filters for owner, property, channel and range (kept in the URL), plus week and month navigation.
 - Monthly occupancy and a "synced X min ago" / sync-error marker per property.
 - Live updates: new bookings and cancellations appear as toasts and on the chart without a reload.
-- Manage properties and iCal channels, and invite owners by email.
+- Manage properties and iCal channels, and invite owners by email. Several apartments can belong to one Booking.com property, each with its own room type and iCal feed.
 - Phones get a list of upcoming check-ins and check-outs instead of the chart.
 
 **Owner**
@@ -71,7 +71,7 @@ flowchart LR
 
 | Trigger | When | Notes |
 | --- | --- | --- |
-| Email | Seconds after Booking.com emails the manager | Finds the property by Booking.com ID, then by name, and syncs everything if unsure. Debounced for 20 s, with one follow-up sync 45 s later because Booking can update the feed after the email. |
+| Email | Seconds after Booking.com emails the manager | Finds the apartment by Booking.com property ID; when several apartments share that property (one room type each), the room name in the email decides. Syncs everything if unsure. Debounced for 20 s, with one follow-up sync 45 s later because Booking can update the feed after the email. |
 | Cron | Every 5 minutes (Supabase `pg_cron` + `pg_net`) | The safety net. The Vercel free plan only allows daily cron jobs, and GitHub Actions schedules can run hours late, so the database schedules it. A GitHub workflow stays as a backup. |
 | Manual | "Refresh now" | For the whole portfolio or a single property. |
 

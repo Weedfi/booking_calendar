@@ -15,6 +15,7 @@ export type PropertyInput = {
   owner_id: string | null;
   color: string;
   booking_property_id: string | null;
+  booking_room_name: string | null;
 };
 
 export function parseProperty(form: FormData): Parsed<PropertyInput> {
@@ -24,6 +25,7 @@ export function parseProperty(form: FormData): Parsed<PropertyInput> {
   const owner = text(form, "owner_id");
   const color = text(form, "color").toLowerCase() || "#3b82f6";
   const bookingId = text(form, "booking_property_id");
+  const roomName = text(form, "booking_room_name");
 
   if (!name) errors.name = "Nazwa jest wymagana.";
   else if (name.length > 100) errors.name = "Nazwa może mieć najwyżej 100 znaków.";
@@ -31,6 +33,7 @@ export function parseProperty(form: FormData): Parsed<PropertyInput> {
   if (owner && !UUID.test(owner)) errors.owner_id = "Wybierz właściciela z listy.";
   if (!/^#[0-9a-f]{6}$/.test(color)) errors.color = "Podaj kolor w formacie #3b82f6.";
   if (bookingId && !/^\d{1,20}$/.test(bookingId)) errors.booking_property_id = "ID obiektu Booking.com to liczba.";
+  if (roomName.length > 100) errors.booking_room_name = "Nazwa pokoju może mieć najwyżej 100 znaków.";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
@@ -41,6 +44,7 @@ export function parseProperty(form: FormData): Parsed<PropertyInput> {
       owner_id: owner || null,
       color,
       booking_property_id: bookingId || null,
+      booking_room_name: roomName || null,
     },
   };
 }

@@ -31,9 +31,14 @@ export async function POST(request: NextRequest) {
     secret: process.env.SYNC_TRIGGER_SECRET,
     now: () => new Date(),
     listProperties: async () => {
-      const { data, error } = await db.from("properties").select("id, name, booking_property_id");
+      const { data, error } = await db.from("properties").select("id, name, booking_property_id, booking_room_name");
       if (error) throw error;
-      return data.map((p) => ({ id: p.id, name: p.name, bookingPropertyId: p.booking_property_id }));
+      return data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        bookingPropertyId: p.booking_property_id,
+        bookingRoomName: p.booking_room_name,
+      }));
     },
     lastEmailSyncAt: async (propertyId) => {
       // A sync of everything (property_id null) covers every property too.
