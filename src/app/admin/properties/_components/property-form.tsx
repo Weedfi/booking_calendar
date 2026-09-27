@@ -28,7 +28,7 @@ export function PropertyForm({ owners, values }: Props) {
   return (
     <form action={action} className="grid gap-3 sm:grid-cols-2">
       {values?.id && <input type="hidden" name="id" value={values.id} />}
-      <Field label="Name" name="name" state={state}>
+      <Field label="Nazwa" name="name" state={state}>
         <input
           name="name"
           required
@@ -37,13 +37,13 @@ export function PropertyForm({ owners, values }: Props) {
           className={inputClass}
         />
       </Field>
-      <Field label="Address" name="address" state={state}>
+      <Field label="Adres" name="address" state={state}>
         <input name="address" defaultValue={value("address") ?? ""} className={inputClass} />
       </Field>
-      <Field label="Owner" name="owner_id" state={state}>
+      <Field label="Właściciel" name="owner_id" state={state}>
         {/* Remount after a failed submit: a select ignores a changed defaultValue. */}
         <select key={state.values?.owner_id} name="owner_id" defaultValue={value("owner_id") ?? ""} className={inputClass}>
-          <option value="">No owner</option>
+          <option value="">Bez właściciela</option>
           {owners.map((o) => (
             <option key={o.id} value={o.id}>
               {o.name}
@@ -52,7 +52,7 @@ export function PropertyForm({ owners, values }: Props) {
         </select>
       </Field>
       <div className="grid grid-cols-[auto_1fr] gap-3">
-        <Field label="Color" name="color" state={state}>
+        <Field label="Kolor" name="color" state={state}>
           <input
             name="color"
             type="color"
@@ -60,11 +60,11 @@ export function PropertyForm({ owners, values }: Props) {
             className="h-9.5 w-14 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
           />
         </Field>
-        <Field label="Booking.com property ID" name="booking_property_id" state={state}>
+        <Field label="ID obiektu Booking.com" name="booking_property_id" state={state}>
           <input
             name="booking_property_id"
             inputMode="numeric"
-            placeholder="e.g. 1234567"
+            placeholder="np. 1234567"
             defaultValue={value("booking_property_id") ?? ""}
             aria-invalid={Boolean(state.fieldErrors?.booking_property_id)}
             className={inputClass}
@@ -72,7 +72,7 @@ export function PropertyForm({ owners, values }: Props) {
         </Field>
       </div>
       <div className="flex items-center gap-3 sm:col-span-2">
-        <SubmitButton pendingText="Saving…">{editing ? "Save changes" : "Add property"}</SubmitButton>
+        <SubmitButton pendingText="Zapisywanie…">{editing ? "Zapisz zmiany" : "Dodaj mieszkanie"}</SubmitButton>
         <FormMessage state={state} />
       </div>
     </form>

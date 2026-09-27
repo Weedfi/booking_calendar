@@ -67,9 +67,9 @@ export function maxDate(...keys: DateKey[]): DateKey {
   return keys.reduce((a, b) => (b > a ? b : a));
 }
 
-/** Formats a date key for display, e.g. "Mon 3 Feb". */
+/** Formats a date key for display in Polish, e.g. "pon., 3 lut". */
 export function formatDate(key: DateKey, options: Intl.DateTimeFormatOptions = {}): string {
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat("pl-PL", {
     timeZone: "UTC",
     weekday: "short",
     day: "numeric",

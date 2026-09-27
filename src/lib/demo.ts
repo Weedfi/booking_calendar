@@ -16,4 +16,4 @@ export const DEMO_ACCOUNTS = {
 
 export type DemoAccount = keyof typeof DEMO_ACCOUNTS;
 
-export const DEMO_READ_ONLY_MESSAGE = "Changes are disabled in the public demo. Everything else works.";
+export const DEMO_READ_ONLY_MESSAGE = "W publicznym demo zmiany są wyłączone. Wszystko inne działa.";

@@ -9,20 +9,20 @@ export function RangeNav({ filters, today }: { filters: AdminFilters; today: Dat
   const last = addDays(rangeEnd(filters), -1);
 
   return (
-    <nav aria-label="Date range" className="flex flex-wrap items-center gap-1">
-      <Link href={href(addDays(filters.from, -28))} className={link} aria-label="Back one month">
+    <nav aria-label="Zakres dat" className="flex flex-wrap items-center gap-1">
+      <Link href={href(addDays(filters.from, -28))} className={link} aria-label="Miesiąc wstecz">
         «
       </Link>
-      <Link href={href(addDays(filters.from, -7))} className={link} aria-label="Back one week">
-        ‹ Week
+      <Link href={href(addDays(filters.from, -7))} className={link} aria-label="Tydzień wstecz">
+        ‹ Tydzień
       </Link>
       <Link href={href(defaultFrom(today))} className={`${link} font-medium`}>
-        Today
+        Dziś
       </Link>
-      <Link href={href(addDays(filters.from, 7))} className={link} aria-label="Forward one week">
-        Week ›
+      <Link href={href(addDays(filters.from, 7))} className={link} aria-label="Tydzień naprzód">
+        Tydzień ›
       </Link>
-      <Link href={href(addDays(filters.from, 28))} className={link} aria-label="Forward one month">
+      <Link href={href(addDays(filters.from, 28))} className={link} aria-label="Miesiąc naprzód">
         »
       </Link>
       <span className="ml-2 text-sm text-slate-600">

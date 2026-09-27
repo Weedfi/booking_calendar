@@ -86,10 +86,10 @@ export function LiveUpdates({ propertyNames }: { propertyNames: Record<string, s
     <>
       <span
         className={`inline-flex items-center gap-1.5 text-xs ${live ? "text-emerald-700" : "text-slate-400"}`}
-        title={live ? "Changes appear here as soon as they are synced" : "Connecting to live updates…"}
+        title={live ? "Zmiany pojawiają się tu zaraz po synchronizacji" : "Łączenie z aktualizacjami na żywo…"}
       >
         <span className={`size-2 rounded-full ${live ? "animate-pulse bg-emerald-500" : "bg-slate-300"}`} aria-hidden />
-        {live ? "Live" : "Connecting…"}
+        {live ? "Na żywo" : "Łączenie…"}
       </span>
       <div aria-live="polite" className="pointer-events-none fixed right-4 bottom-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2">
         {toasts.map((toast) => (

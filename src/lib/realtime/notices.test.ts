@@ -42,14 +42,14 @@ describe("messages", () => {
   const notice = toNotice({ eventType: "INSERT", new: row(), old: {} })!;
 
   it("names the property and dates", () => {
-    expect(noticeText(notice, "Old Town Loft")).toBe("New booking: Old Town Loft, Fri 9 Oct → Mon 12 Oct");
-    expect(noticeText(notice, undefined)).toBe("New booking: a property, Fri 9 Oct → Mon 12 Oct");
+    expect(noticeText(notice, "Old Town Loft")).toBe("Nowa rezerwacja: Old Town Loft, pt., 9 paź → pon., 12 paź");
+    expect(noticeText(notice, undefined)).toBe("Nowa rezerwacja: mieszkanie, pt., 9 paź → pon., 12 paź");
   });
 
   it("shows up to three notices one by one and summarizes bigger bursts", () => {
     const names = { loft: "Old Town Loft", studio: "Kazimierz Studio" };
     expect(batchMessages([notice, notice], names)).toHaveLength(2);
     const burst = [notice, notice, { ...notice, propertyId: "studio" }, notice];
-    expect(batchMessages(burst, names)).toEqual(["4 booking updates across 2 properties"]);
+    expect(batchMessages(burst, names)).toEqual(["Zmiany w rezerwacjach: 4 (2 mieszkania)"]);
   });
 });

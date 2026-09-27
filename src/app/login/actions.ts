@@ -13,7 +13,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function sendMagicLink(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL.test(email)) {
-    return { status: "error", message: "Enter a valid email address." };
+    return { status: "error", message: "Podaj poprawny adres email." };
   }
 
   const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -28,7 +28,7 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   });
 
   if (error?.status === 429) {
-    return { status: "error", message: "Too many attempts. Wait a minute and try again." };
+    return { status: "error", message: "Za dużo prób. Odczekaj chwilę i spróbuj ponownie." };
   }
   // Any other outcome, including unknown addresses, gets the same answer so
   // the form cannot be used to check who has an account.

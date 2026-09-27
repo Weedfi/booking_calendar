@@ -38,7 +38,7 @@ describe("fetchIcal", () => {
     // Port 9 (discard) is closed on practically every machine.
     const error = await fetchIcal("http://127.0.0.1:9/export/secret-token.ics").catch((e) => e);
     expect(error).toBeInstanceOf(FeedFetchError);
-    expect(error.message).toMatch(/^Network error/);
+    expect(error.message).toMatch(/^Błąd sieci/);
     expect(error.message).not.toContain("secret-token");
   });
 });

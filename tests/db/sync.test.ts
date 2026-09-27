@@ -140,7 +140,7 @@ describe("sync against Supabase", () => {
     expect(event).toMatchObject({
       trigger: "manual",
       ok: false,
-      error: "1 of 2 channels failed: HTTP 503 Service Unavailable",
+      error: "Błąd w 1 z 2 kanałów: HTTP 503 Service Unavailable",
     });
     expect(event?.finished_at).not.toBeNull();
   });

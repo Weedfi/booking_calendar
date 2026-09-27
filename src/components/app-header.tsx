@@ -5,9 +5,9 @@ import { isDemoMode } from "@/lib/demo";
 type Section = "calendar" | "properties" | "owners";
 
 const ADMIN_NAV: { section: Section; href: string; label: string }[] = [
-  { section: "calendar", href: "/admin", label: "Calendar" },
-  { section: "properties", href: "/admin/properties", label: "Properties" },
-  { section: "owners", href: "/admin/owners", label: "Owners" },
+  { section: "calendar", href: "/admin", label: "Kalendarz" },
+  { section: "properties", href: "/admin/properties", label: "Mieszkania" },
+  { section: "owners", href: "/admin/owners", label: "Właściciele" },
 ];
 
 export function AppHeader({ user, active }: { user: CurrentUser; active?: Section }) {
@@ -15,19 +15,19 @@ export function AppHeader({ user, active }: { user: CurrentUser; active?: Sectio
     <header className="border-b border-slate-200 bg-white">
       {isDemoMode() && (
         <p className="bg-indigo-600 px-4 py-1 text-center text-xs text-white">
-          Public demo with fake data. Changes are disabled; syncing and live updates work.
+          Publiczne demo z fałszywymi danymi. Zmiany są wyłączone; synchronizacja i aktualizacje na żywo działają.
         </p>
       )}
       <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            Rental Calendar
+            Kalendarz rezerwacji
             {user.role === "admin" && (
               <span className="rounded bg-slate-900 px-1.5 py-0.5 text-xs font-medium text-white">Admin</span>
             )}
           </Link>
           {user.role === "admin" && (
-            <nav aria-label="Admin" className="flex gap-1 text-sm">
+            <nav aria-label="Panel admina" className="flex gap-1 text-sm">
               {ADMIN_NAV.map((item) => (
                 <Link
                   key={item.section}
@@ -47,7 +47,7 @@ export function AppHeader({ user, active }: { user: CurrentUser; active?: Sectio
           <span className="hidden text-slate-600 sm:inline">{user.fullName ?? user.email}</span>
           <form action="/auth/signout" method="post">
             <button type="submit" className="rounded-md px-2 py-1 text-slate-700 hover:bg-slate-100">
-              Sign out
+              Wyloguj
             </button>
           </form>
         </div>

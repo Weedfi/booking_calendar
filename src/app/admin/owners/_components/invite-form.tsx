@@ -9,7 +9,7 @@ export function InviteForm() {
 
   return (
     <form action={action} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-      <Field label="Full name" name="full_name" state={state}>
+      <Field label="Imię i nazwisko" name="full_name" state={state}>
         <input
           name="full_name"
           required
@@ -30,7 +30,7 @@ export function InviteForm() {
           className={inputClass}
         />
       </Field>
-      <SubmitButton pendingText="Sending…">Send invitation</SubmitButton>
+      <SubmitButton pendingText="Wysyłanie…">Wyślij zaproszenie</SubmitButton>
       <div className="sm:col-span-3">
         <FormMessage state={state} />
       </div>

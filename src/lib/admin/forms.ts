@@ -25,12 +25,12 @@ export function parseProperty(form: FormData): Parsed<PropertyInput> {
   const color = text(form, "color").toLowerCase() || "#3b82f6";
   const bookingId = text(form, "booking_property_id");
 
-  if (!name) errors.name = "Name is required.";
-  else if (name.length > 100) errors.name = "Keep the name under 100 characters.";
-  if (address.length > 200) errors.address = "Keep the address under 200 characters.";
-  if (owner && !UUID.test(owner)) errors.owner_id = "Choose an owner from the list.";
-  if (!/^#[0-9a-f]{6}$/.test(color)) errors.color = "Use a hex color like #3b82f6.";
-  if (bookingId && !/^\d{1,20}$/.test(bookingId)) errors.booking_property_id = "The Booking.com property ID is a number.";
+  if (!name) errors.name = "Nazwa jest wymagana.";
+  else if (name.length > 100) errors.name = "Nazwa może mieć najwyżej 100 znaków.";
+  if (address.length > 200) errors.address = "Adres może mieć najwyżej 200 znaków.";
+  if (owner && !UUID.test(owner)) errors.owner_id = "Wybierz właściciela z listy.";
+  if (!/^#[0-9a-f]{6}$/.test(color)) errors.color = "Podaj kolor w formacie #3b82f6.";
+  if (bookingId && !/^\d{1,20}$/.test(bookingId)) errors.booking_property_id = "ID obiektu Booking.com to liczba.";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
@@ -53,8 +53,8 @@ export function parseChannel(form: FormData, { allowHttp = false } = {}): Parsed
   const source = text(form, "source") as ChannelSource;
   const url = text(form, "ical_url");
 
-  if (!UUID.test(propertyId)) errors.property_id = "Unknown property.";
-  if (!SOURCES.includes(source)) errors.source = "Choose a channel.";
+  if (!UUID.test(propertyId)) errors.property_id = "Nieznane mieszkanie.";
+  if (!SOURCES.includes(source)) errors.source = "Wybierz kanał.";
   const urlError = icalUrlError(url, allowHttp);
   if (urlError) errors.ical_url = urlError;
 
@@ -63,17 +63,17 @@ export function parseChannel(form: FormData, { allowHttp = false } = {}): Parsed
 }
 
 function icalUrlError(url: string, allowHttp: boolean): string | null {
-  if (!url) return "Paste the iCal export link.";
+  if (!url) return "Wklej link eksportu iCal.";
   let parsed: URL;
   try {
     parsed = new URL(url);
   } catch {
-    return "That is not a valid link.";
+    return "To nie jest poprawny link.";
   }
   if (parsed.protocol !== "https:" && !(allowHttp && parsed.protocol === "http:")) {
-    return "The link must start with https://.";
+    return "Link musi zaczynać się od https://.";
   }
-  if (url.length > 2000) return "That link is too long.";
+  if (url.length > 2000) return "Ten link jest za długi.";
   return null;
 }
 
@@ -84,9 +84,9 @@ export function parseInvite(form: FormData): Parsed<InviteInput> {
   const email = text(form, "email").toLowerCase();
   const fullName = text(form, "full_name");
 
-  if (!EMAIL.test(email)) errors.email = "Enter a valid email address.";
-  if (!fullName) errors.full_name = "Name is required.";
-  else if (fullName.length > 100) errors.full_name = "Keep the name under 100 characters.";
+  if (!EMAIL.test(email)) errors.email = "Podaj poprawny adres email.";
+  if (!fullName) errors.full_name = "Nazwa jest wymagana.";
+  else if (fullName.length > 100) errors.full_name = "Nazwa może mieć najwyżej 100 znaków.";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return { ok: true, value: { email, full_name: fullName } };

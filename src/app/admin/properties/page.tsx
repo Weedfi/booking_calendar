@@ -11,7 +11,7 @@ import { RefreshButton } from "../_components/refresh-button";
 import { ChannelForm } from "./_components/channel-form";
 import { PropertyForm } from "./_components/property-form";
 
-export const metadata: Metadata = { title: "Properties" };
+export const metadata: Metadata = { title: "Mieszkania" };
 
 // Adding a channel runs its first sync inside the server action.
 export const maxDuration = 60;
@@ -28,12 +28,12 @@ export default async function PropertiesPage() {
       <AppHeader user={user} active="properties" />
       <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-xl font-semibold">Properties ({properties.length})</h1>
-          <RefreshButton label="Sync all now" />
+          <h1 className="text-xl font-semibold">Mieszkania ({properties.length})</h1>
+          <RefreshButton label="Synchronizuj wszystko" />
         </div>
 
         <details className="rounded-xl border border-slate-200 bg-white p-4">
-          <summary className="cursor-pointer font-medium">Add a property</summary>
+          <summary className="cursor-pointer font-medium">Dodaj mieszkanie</summary>
           <div className="mt-4">
             <PropertyForm owners={owners} />
           </div>
@@ -48,7 +48,7 @@ export default async function PropertiesPage() {
                   {p.name}
                 </h2>
                 <p className="text-sm text-slate-600">
-                  {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "No owner", p.booking_property_id && `Booking.com ID ${p.booking_property_id}`]
+                  {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "Bez właściciela", p.booking_property_id && `ID Booking.com: ${p.booking_property_id}`]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -56,13 +56,13 @@ export default async function PropertiesPage() {
               <DeleteButton
                 action={deleteProperty}
                 id={p.id}
-                label="Delete"
-                confirmText={`Delete ${p.name} with all its channels and reservations? This cannot be undone.`}
+                label="Usuń"
+                confirmText={`Usunąć ${p.name} razem ze wszystkimi kanałami i rezerwacjami? Tej operacji nie można cofnąć.`}
               />
             </div>
 
             <details className="mt-3">
-              <summary className="cursor-pointer text-sm text-slate-700">Edit details</summary>
+              <summary className="cursor-pointer text-sm text-slate-700">Edytuj dane</summary>
               <div className="mt-3">
                 <PropertyForm
                   owners={owners}
@@ -80,11 +80,11 @@ export default async function PropertiesPage() {
 
             <div className="mt-4 border-t border-slate-100 pt-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-slate-700">Channels</h3>
-                {p.channels.length > 0 && <RefreshButton propertyId={p.id} label="Sync this property" />}
+                <h3 className="text-sm font-medium text-slate-700">Kanały</h3>
+                {p.channels.length > 0 && <RefreshButton propertyId={p.id} label="Synchronizuj to mieszkanie" />}
               </div>
               {p.channels.length === 0 ? (
-                <p className="mb-3 text-sm text-slate-500">No channels yet. Paste the iCal export link from Booking.com or Airbnb.</p>
+                <p className="mb-3 text-sm text-slate-500">Brak kanałów. Wklej link eksportu iCal z Booking.com lub Airbnb.</p>
               ) : (
                 <ul className="mb-3 flex flex-col divide-y divide-slate-100">
                   {p.channels.map((c) => (
@@ -109,17 +109,17 @@ function ChannelRow({ channel: c, now }: { channel: ManagedChannel; now: Date })
       <code className="text-xs text-slate-500">{c.maskedUrl}</code>
       <span className={`text-xs ${c.lastSyncError ? "text-red-700" : "text-slate-500"}`}>
         {c.lastSyncError
-          ? `Error: ${c.lastSyncError}`
+          ? `Błąd: ${c.lastSyncError}`
           : c.lastSyncedAt
-            ? `Synced ${formatRelative(new Date(c.lastSyncedAt), now)}`
-            : "Never synced"}
+            ? `Sync. ${formatRelative(new Date(c.lastSyncedAt), now)}`
+            : "Nigdy nie synchronizowano"}
       </span>
       <span className="ml-auto">
         <DeleteButton
           action={deleteChannel}
           id={c.id}
-          label="Remove"
-          confirmText={`Remove this ${CHANNELS[c.source].label} channel and its reservations?`}
+          label="Usuń"
+          confirmText={`Usunąć kanał ${CHANNELS[c.source].label} i jego rezerwacje?`}
         />
       </span>
     </li>

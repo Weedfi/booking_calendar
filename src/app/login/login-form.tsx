@@ -11,7 +11,7 @@ export function LoginForm() {
   if (state.status === "sent") {
     return (
       <p role="status" className="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-900">
-        If this address has an account, a sign-in link is on its way. Check your inbox.
+        Jeśli ten adres ma konto, link do logowania jest już w drodze. Sprawdź skrzynkę.
       </p>
     );
   }
@@ -27,7 +27,7 @@ export function LoginForm() {
         type="email"
         required
         autoComplete="email"
-        placeholder="you@example.com"
+        placeholder="ty@przyklad.pl"
         className="rounded-lg border border-slate-300 px-3 py-2 text-base outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
       />
       {state.status === "error" && (
@@ -40,7 +40,7 @@ export function LoginForm() {
         disabled={pending}
         className="rounded-lg bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-800 disabled:opacity-60"
       >
-        {pending ? "Sending…" : "Send sign-in link"}
+        {pending ? "Wysyłanie…" : "Wyślij link do logowania"}
       </button>
     </form>
   );

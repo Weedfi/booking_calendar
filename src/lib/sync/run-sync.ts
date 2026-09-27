@@ -1,3 +1,4 @@
+import { plural } from "@/lib/i18n";
 import { APP_TIMEZONE, dateKeyInZone, type DateKey } from "@/lib/dates";
 import { fetchIcal as defaultFetchIcal, type FetchIcal } from "./fetch-ical";
 import { parseIcal } from "./parse-ical";
@@ -83,12 +84,12 @@ function summarizeFailures(
   total: number,
 ): string {
   const distinct = [...new Set(failures.map((f) => f.error))].join("; ");
-  return `${failures.length} of ${total} channels failed: ${distinct}`;
+  return `Błąd w ${failures.length} z ${total} ${plural(total, ["kanału", "kanałów", "kanałów"])}: ${distinct}`;
 }
 
 function errorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   // Supabase/PostgREST errors are plain objects with a message field.
   if (error && typeof error === "object" && "message" in error) return String(error.message);
-  return "Unknown error";
+  return "Nieznany błąd";
 }

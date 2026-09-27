@@ -37,9 +37,9 @@ export function FilterBar({ filters, owners, properties }: Props) {
     >
       <input type="hidden" name="from" value={filters.from} />
       <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
-        Owner
+        Właściciel
         <select name="owner" defaultValue={filters.ownerId ?? ""} className={select}>
-          <option value="">All owners</option>
+          <option value="">Wszyscy właściciele</option>
           {owners.map((o) => (
             <option key={o.id} value={o.id}>
               {o.name}
@@ -48,9 +48,9 @@ export function FilterBar({ filters, owners, properties }: Props) {
         </select>
       </label>
       <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
-        Property
+        Mieszkanie
         <select name="property" defaultValue={filters.propertyId ?? ""} className={select}>
-          <option value="">All properties</option>
+          <option value="">Wszystkie mieszkania</option>
           {properties.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -59,9 +59,9 @@ export function FilterBar({ filters, owners, properties }: Props) {
         </select>
       </label>
       <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
-        Channel
+        Kanał
         <select name="channel" defaultValue={filters.source ?? ""} className={select}>
-          <option value="">All channels</option>
+          <option value="">Wszystkie kanały</option>
           {Object.entries(CHANNELS).map(([value, { label }]) => (
             <option key={value} value={value}>
               {label}
@@ -71,18 +71,18 @@ export function FilterBar({ filters, owners, properties }: Props) {
       </label>
       {/* The range only affects the tape chart, which is hidden on phones. */}
       <label className="hidden flex-col gap-1 text-xs font-medium text-slate-600 md:flex">
-        Range
+        Zakres
         <select name="days" defaultValue={String(filters.days)} className={select}>
           {RANGE_OPTIONS.map((d) => (
             <option key={d} value={d}>
-              {d === 7 ? "1 week" : d === 14 ? "2 weeks" : "1 month"}
+              {d === 7 ? "1 tydzień" : d === 14 ? "2 tygodnie" : "1 miesiąc"}
             </option>
           ))}
         </select>
       </label>
       <noscript>
         <button type="submit" className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white">
-          Apply
+          Zastosuj
         </button>
       </noscript>
     </form>

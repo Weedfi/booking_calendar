@@ -5,7 +5,7 @@ import { isDemoMode } from "@/lib/demo";
 import { demoSignIn } from "./actions";
 import { LoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = { title: "Logowanie" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const user = await getCurrentUser();
@@ -16,18 +16,18 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="flex flex-1 items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">Rental Calendar</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Kalendarz rezerwacji</h1>
         <p className="mt-1 mb-6 text-sm text-slate-600">
-          Sign in with your email. We&apos;ll send you a link, no password needed.
+          Zaloguj się adresem email. Wyślemy Ci link, bez hasła.
         </p>
         {error === "link" && (
           <p role="alert" className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-            That sign-in link is invalid or has expired. Request a new one.
+            Ten link do logowania jest nieprawidłowy lub wygasł. Poproś o nowy.
           </p>
         )}
         {error === "demo" && (
           <p role="alert" className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-            The demo sign-in did not work. Try again in a moment.
+            Logowanie do demo się nie udało. Spróbuj za chwilę.
           </p>
         )}
         {isDemoMode() && <DemoSignIn />}
@@ -42,16 +42,16 @@ function DemoSignIn() {
   return (
     <div className="mb-6 rounded-xl bg-indigo-50 p-4">
       <p className="mb-3 text-sm text-indigo-950">
-        <span className="font-semibold">Public demo with fake data.</span> Look around as:
+        <span className="font-semibold">Publiczne demo z fałszywymi danymi.</span> Zobacz jako:
       </p>
       <div className="flex gap-2">
         <form action={demoSignIn} className="flex flex-1">
           <input type="hidden" name="account" value="admin" />
-          <button type="submit" className={button}>Manager (admin)</button>
+          <button type="submit" className={button}>Zarządca (admin)</button>
         </form>
         <form action={demoSignIn} className="flex flex-1">
           <input type="hidden" name="account" value="owner" />
-          <button type="submit" className={button}>Owner</button>
+          <button type="submit" className={button}>Właściciel</button>
         </form>
       </div>
     </div>

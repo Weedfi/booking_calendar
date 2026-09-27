@@ -8,8 +8,9 @@ import { daysBetween, formatDate, todayKey, type DateKey } from "@/lib/dates";
 import { loadOwnerView, monthParam, parseOwnerParams, type OwnerStay } from "@/lib/owner/view";
 import { createClient } from "@/lib/supabase/server";
 import { MonthCalendar } from "./_components/month-calendar";
+import { nightsLabel } from "@/lib/i18n";
 
-export const metadata: Metadata = { title: "My properties" };
+export const metadata: Metadata = { title: "Moje mieszkania" };
 
 export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
   const user = await requireRole("owner");
@@ -22,8 +23,8 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
       <>
         <AppHeader user={user} />
         <main className="mx-auto w-full max-w-xl p-4">
-          <h1 className="text-xl font-semibold">My properties</h1>
-          <p className="mt-2 text-slate-600">No properties are linked to your account yet. Contact your manager.</p>
+          <h1 className="text-xl font-semibold">Moje mieszkania</h1>
+          <p className="mt-2 text-slate-600">Do Twojego konta nie są jeszcze przypisane żadne mieszkania. Skontaktuj się z zarządcą.</p>
         </main>
       </>
     );
@@ -37,7 +38,7 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
       <AppHeader user={user} />
       <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
         {view.properties.length > 1 && (
-          <nav aria-label="Your properties" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          <nav aria-label="Twoje mieszkania" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
             {view.properties.map((p) => (
               <Link
                 key={p.id}
@@ -65,13 +66,13 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
         </div>
 
         <dl className="grid grid-cols-2 gap-3">
-          <Stat label={`Occupancy in ${monthName}`} value={`${Math.round(view.occupancy * 100)}%`} />
-          <Stat label={`Booked nights in ${monthName}`} value={String(view.bookedNights)} />
+          <Stat label={`Obłożenie (${monthName})`} value={`${Math.round(view.occupancy * 100)}%`} />
+          <Stat label={`Zajęte noce (${monthName})`} value={String(view.bookedNights)} />
         </dl>
 
         {view.current && (
           <p className="rounded-xl bg-indigo-50 p-3 text-sm text-indigo-950">
-            <span className="font-semibold">Guest staying now</span> · checks out {formatDate(view.current.endDate)}
+            <span className="font-semibold">Gość jest teraz na miejscu</span> · wymeldowanie {formatDate(view.current.endDate)}
           </p>
         )}
 
@@ -82,10 +83,10 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
           nextHref={href(view.property.id, view.nextMonth)}
         />
 
-        <section aria-label="Upcoming stays">
-          <h2 className="mb-2 font-semibold">Upcoming stays</h2>
+        <section aria-label="Najbliższe pobyty">
+          <h2 className="mb-2 font-semibold">Najbliższe pobyty</h2>
           {view.upcoming.length === 0 ? (
-            <p className="text-sm text-slate-500">No upcoming stays.</p>
+            <p className="text-sm text-slate-500">Brak zaplanowanych pobytów.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {view.upcoming.map((s) => (
@@ -119,11 +120,11 @@ function UpcomingStay({ stay, today }: { stay: OwnerStay; today: DateKey }) {
           {formatDate(stay.startDate)} → {formatDate(stay.endDate)}
         </p>
         <p className="text-sm text-slate-500">
-          {nights} {nights === 1 ? "night" : "nights"} · {CHANNELS[stay.source].label}
+          {nightsLabel(nights)} · {CHANNELS[stay.source].label}
         </p>
       </div>
       <span className="shrink-0 text-xs text-slate-500">
-        {inDays === 0 ? "Today" : inDays === 1 ? "Tomorrow" : `in ${inDays} days`}
+        {inDays === 0 ? "Dziś" : inDays === 1 ? "Jutro" : `za ${inDays} dni`}
       </span>
     </li>
   );

@@ -18,7 +18,7 @@ const TIMEOUT_MS = 15_000;
 export const fetchIcal: FetchIcal = async (url) => {
   if (isDemoUrl(url)) {
     // Seed data points at generated feeds; only served when explicitly enabled.
-    if (process.env.DEMO_FEEDS !== "true") throw new FeedFetchError("Demo feeds are disabled");
+    if (process.env.DEMO_FEEDS !== "true") throw new FeedFetchError("Kanały demo są wyłączone");
     return generateDemoFeed(url);
   }
 
@@ -32,10 +32,10 @@ export const fetchIcal: FetchIcal = async (url) => {
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "TimeoutError") {
-      throw new FeedFetchError(`Timed out after ${TIMEOUT_MS / 1000} s`);
+      throw new FeedFetchError(`Przekroczono czas oczekiwania (${TIMEOUT_MS / 1000} s)`);
     }
     const code = (error as { cause?: { code?: string } }).cause?.code;
-    throw new FeedFetchError(code ? `Network error (${code})` : "Network error");
+    throw new FeedFetchError(code ? `Błąd sieci (${code})` : "Błąd sieci");
   }
 
   if (!response.ok) {

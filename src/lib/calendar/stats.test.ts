@@ -43,11 +43,11 @@ describe("formatRelative", () => {
   const ago = (ms: number) => formatRelative(new Date(now.getTime() - ms), now);
 
   it.each([
-    [20_000, "just now"],
-    [5 * 60_000, "5 min ago"],
-    [3 * 3_600_000, "3 h ago"],
-    [26 * 3_600_000, "1 day ago"],
-    [72 * 3_600_000, "3 days ago"],
+    [20_000, "przed chwilą"],
+    [5 * 60_000, "5 min temu"],
+    [3 * 3_600_000, "3 godz. temu"],
+    [26 * 3_600_000, "1 dzień temu"],
+    [72 * 3_600_000, "3 dni temu"],
   ])("formats %i ms as %s", (ms, expected) => {
     expect(ago(ms)).toBe(expected);
   });

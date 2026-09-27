@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { GridDay } from "@/lib/owner/month-grid";
 import { formatDate, type DateKey } from "@/lib/dates";
+import { capitalize } from "@/lib/i18n";
 
 const BOOKED = "#a5b4fc"; // indigo-300: dark text stays readable on it
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
 type Props = {
   weeks: GridDay[][];
@@ -19,13 +20,13 @@ type Props = {
  */
 export function MonthCalendar({ weeks, month, prevHref, nextHref }: Props) {
   return (
-    <section aria-label="Booking calendar" className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+    <section aria-label="Kalendarz rezerwacji" className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between">
-        <Link href={prevHref} className="rounded-lg px-3 py-2 text-lg hover:bg-slate-100" aria-label="Previous month">
+        <Link href={prevHref} className="rounded-lg px-3 py-2 text-lg hover:bg-slate-100" aria-label="Poprzedni miesiąc">
           ‹
         </Link>
-        <h2 className="font-semibold">{formatDate(month, { weekday: undefined, day: undefined, month: "long", year: "numeric" })}</h2>
-        <Link href={nextHref} className="rounded-lg px-3 py-2 text-lg hover:bg-slate-100" aria-label="Next month">
+        <h2 className="font-semibold">{capitalize(formatDate(month, { weekday: undefined, day: undefined, month: "long", year: "numeric" }))}</h2>
+        <Link href={nextHref} className="rounded-lg px-3 py-2 text-lg hover:bg-slate-100" aria-label="Następny miesiąc">
           ›
         </Link>
       </div>
@@ -53,18 +54,18 @@ export function MonthCalendar({ weeks, month, prevHref, nextHref }: Props) {
 
       <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded" style={{ background: BOOKED }} aria-hidden /> Booked
+          <span className="size-3 rounded" style={{ background: BOOKED }} aria-hidden /> Zajęte
         </li>
         <li className="flex items-center gap-1.5">
           <span className="size-3 rounded" style={{ background: fill({ morning: false, evening: true }) }} aria-hidden />
-          Check-in
+          Zameldowanie
         </li>
         <li className="flex items-center gap-1.5">
           <span className="size-3 rounded" style={{ background: fill({ morning: true, evening: false }) }} aria-hidden />
-          Check-out
+          Wymeldowanie
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded border border-slate-200 bg-white" aria-hidden /> Available
+          <span className="size-3 rounded border border-slate-200 bg-white" aria-hidden /> Wolne
         </li>
       </ul>
     </section>
@@ -79,8 +80,8 @@ function fill({ morning, evening }: Pick<GridDay, "morning" | "evening">): strin
 }
 
 function describe({ morning, evening }: GridDay): string {
-  if (morning && evening) return "booked";
-  if (evening) return "check-in day";
-  if (morning) return "check-out day";
-  return "available";
+  if (morning && evening) return "zajęte";
+  if (evening) return "dzień zameldowania";
+  if (morning) return "dzień wymeldowania";
+  return "wolne";
 }

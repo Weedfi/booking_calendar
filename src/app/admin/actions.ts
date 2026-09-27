@@ -28,7 +28,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const success = (message: string): ActionState => ({ status: "success", message });
 const failure = (message: string, fieldErrors?: FieldErrors): ActionState => ({ status: "error", message, fieldErrors });
 const invalid = (fieldErrors: FieldErrors, form: FormData): ActionState => ({
-  ...failure("Please fix the highlighted fields.", fieldErrors),
+  ...failure("Popraw zaznaczone pola.", fieldErrors),
   values: submitted(form),
 });
 
@@ -66,9 +66,9 @@ export async function refreshNow(_prev: ActionState, form: FormData): Promise<Ac
   const summary = summarize(await syncNow("manual", propertyId ? [propertyId] : undefined));
   refresh();
 
-  const changes = `${summary.upserted} updated, ${summary.cancelled} cancelled`;
-  if (summary.ok) return success(`Synced ${summary.channels} channels: ${changes}.`);
-  return failure(`${summary.failed} of ${summary.channels} channels failed (${changes}). See the red markers.`);
+  const changes = `zmienione: ${summary.upserted}, anulowane: ${summary.cancelled}`;
+  if (summary.ok) return success(`Zsynchronizowano kanały (${summary.channels}): ${changes}.`);
+  return failure(`Błąd w ${summary.failed} z ${summary.channels} kanałów (${changes}). Zobacz czerwone oznaczenia.`);
 }
 
 // ---------------------------------------------------------------------------
@@ -88,26 +88,26 @@ export async function saveProperty(_prev: ActionState, form: FormData): Promise<
     : await supabase.from("properties").insert(parsed.value);
 
   if (isUniqueViolation(error)) {
-    return invalid({ booking_property_id: "Another property already uses this Booking.com ID." }, form);
+    return invalid({ booking_property_id: "Inne mieszkanie ma już to ID Booking.com." }, form);
   }
-  if (error) return failure("Could not save the property. Try again.");
+  if (error) return failure("Nie udało się zapisać mieszkania. Spróbuj ponownie.");
 
   refresh();
-  return success(id ? "Property saved." : `Added ${parsed.value.name}.`);
+  return success(id ? "Zapisano zmiany." : `Dodano: ${parsed.value.name}.`);
 }
 
 export async function deleteProperty(_prev: ActionState, form: FormData): Promise<ActionState> {
   const blocked = await blockedWrite();
   if (blocked) return blocked;
   const id = idFrom(form);
-  if (!id) return failure("Unknown property.");
+  if (!id) return failure("Nieznane mieszkanie.");
 
   // Channels and reservations are removed by ON DELETE CASCADE.
   const { error } = await (await createClient()).from("properties").delete().eq("id", id);
-  if (error) return failure("Could not delete the property.");
+  if (error) return failure("Nie udało się usunąć mieszkania.");
 
   refresh();
-  return success("Property deleted.");
+  return success("Mieszkanie usunięte.");
 }
 
 // ---------------------------------------------------------------------------
@@ -122,28 +122,28 @@ export async function addChannel(_prev: ActionState, form: FormData): Promise<Ac
   if (!parsed.ok) return invalid(parsed.errors, form);
 
   const { error } = await (await createClient()).from("channels").insert(parsed.value);
-  if (error) return failure("Could not add the channel.");
+  if (error) return failure("Nie udało się dodać kanału.");
 
   // Import the new feed right away instead of waiting for the next cron run.
   const summary = summarize(await syncNow("manual", [parsed.value.property_id]));
   refresh();
   return summary.ok
-    ? success(`Channel added and synced: ${summary.upserted} stays imported.`)
-    : failure("Channel added, but the first sync failed. Check the link; the error is shown on the channel.");
+    ? success(`Kanał dodany i zsynchronizowany. Zaimportowane pobyty: ${summary.upserted}.`)
+    : failure("Kanał dodany, ale pierwsza synchronizacja się nie udała. Sprawdź link; błąd widać przy kanale.");
 }
 
 export async function deleteChannel(_prev: ActionState, form: FormData): Promise<ActionState> {
   const blocked = await blockedWrite();
   if (blocked) return blocked;
   const id = idFrom(form);
-  if (!id) return failure("Unknown channel.");
+  if (!id) return failure("Nieznany kanał.");
 
   // Its reservations go with it (ON DELETE CASCADE).
   const { error } = await (await createClient()).from("channels").delete().eq("id", id);
-  if (error) return failure("Could not delete the channel.");
+  if (error) return failure("Nie udało się usunąć kanału.");
 
   refresh();
-  return success("Channel deleted.");
+  return success("Kanał usunięty.");
 }
 
 // ---------------------------------------------------------------------------
@@ -165,10 +165,10 @@ export async function inviteOwner(_prev: ActionState, form: FormData): Promise<A
   });
 
   if (error?.code === "email_exists" || /already been registered/i.test(error?.message ?? "")) {
-    return invalid({ email: "This person already has an account." }, form);
+    return invalid({ email: "Ta osoba ma już konto." }, form);
   }
-  if (error) return failure("Could not send the invitation. Try again.");
+  if (error) return failure("Nie udało się wysłać zaproszenia. Spróbuj ponownie.");
 
   refresh();
-  return success(`Invitation sent to ${parsed.value.email}.`);
+  return success(`Zaproszenie wysłane na ${parsed.value.email}.`);
 }

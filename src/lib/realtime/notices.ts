@@ -1,3 +1,4 @@
+import { plural } from "@/lib/i18n";
 import { formatDate } from "@/lib/dates";
 
 /** The reservation columns a Realtime change carries (a subset is enough). */
@@ -39,15 +40,15 @@ export function toNotice(change: ReservationChange): Notice | null {
 }
 
 const LABELS: Record<Notice["kind"], string> = {
-  new: "New booking",
-  cancelled: "Cancelled",
-  updated: "Booking updated",
+  new: "Nowa rezerwacja",
+  cancelled: "Anulowano",
+  updated: "Zmiana rezerwacji",
 };
 
-/** "New booking: Old Town Loft, Fri 9 Oct → Mon 12 Oct" */
+/** "Nowa rezerwacja: Old Town Loft, pt., 9 paź → pon., 12 paź" */
 export function noticeText(notice: Notice, propertyName: string | undefined): string {
   const dates = `${formatDate(notice.startDate)} → ${formatDate(notice.endDate)}`;
-  return `${LABELS[notice.kind]}: ${propertyName ?? "a property"}, ${dates}`;
+  return `${LABELS[notice.kind]}: ${propertyName ?? "mieszkanie"}, ${dates}`;
 }
 
 /**
@@ -57,5 +58,5 @@ export function noticeText(notice: Notice, propertyName: string | undefined): st
 export function batchMessages(notices: Notice[], names: Record<string, string>, max = 3): string[] {
   if (notices.length <= max) return notices.map((n) => noticeText(n, names[n.propertyId]));
   const properties = new Set(notices.map((n) => n.propertyId)).size;
-  return [`${notices.length} booking updates across ${properties} ${properties === 1 ? "property" : "properties"}`];
+  return [`Zmiany w rezerwacjach: ${notices.length} (${properties} ${plural(properties, ["mieszkanie", "mieszkania", "mieszkań"])})`];
 }

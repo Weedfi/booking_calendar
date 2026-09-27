@@ -4,6 +4,7 @@ import { nights } from "@/lib/admin/dashboard";
 import { CHANNELS } from "@/lib/calendar/channels";
 import type { Bar } from "@/lib/calendar/tape-chart";
 import { formatDate, type DateKey } from "@/lib/dates";
+import { nightsLabel } from "@/lib/i18n";
 
 type Props = {
   rows: DashboardRow[];
@@ -30,7 +31,7 @@ export function TapeChart({ rows, days, today, occupancyLabel }: Props) {
       <div className="min-w-max">
         <div className="grid border-b border-slate-200 text-xs" style={grid}>
           <div className="sticky left-0 z-20 flex items-end bg-white px-3 py-2 font-medium text-slate-500">
-            Property · {occupancyLabel}
+            Mieszkanie · {occupancyLabel}
           </div>
           {days.map((day, i) => (
             <div
@@ -49,7 +50,7 @@ export function TapeChart({ rows, days, today, occupancyLabel }: Props) {
           ))}
         </div>
 
-        {rows.length === 0 && <p className="p-6 text-center text-sm text-slate-500">No properties match these filters.</p>}
+        {rows.length === 0 && <p className="p-6 text-center text-sm text-slate-500">Żadne mieszkanie nie pasuje do filtrów.</p>}
 
         {rows.map((row) => (
           <div
@@ -86,12 +87,12 @@ function PropertyLabel({ row }: { row: DashboardRow }) {
       <div className="flex items-center gap-2">
         <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: property.color }} aria-hidden />
         <span className="truncate text-sm font-medium">{property.name}</span>
-        <span className="ml-auto text-xs tabular-nums text-slate-500" title="Occupancy this month">
+        <span className="ml-auto text-xs tabular-nums text-slate-500" title="Obłożenie w miesiącu">
           {Math.round(row.occupancy * 100)}%
         </span>
       </div>
       <div className="flex items-center gap-2 pl-4.5 text-xs text-slate-500">
-        <span className="truncate">{property.ownerName ?? "No owner"}</span>
+        <span className="truncate">{property.ownerName ?? "Bez właściciela"}</span>
         <SyncBadge sync={row.sync} />
       </div>
     </div>
@@ -104,7 +105,7 @@ function SyncBadge({ sync }: { sync: SyncSummary }) {
   return (
     <span className={`ml-auto flex shrink-0 items-center gap-1 ${sync.state === "error" ? "text-red-700" : ""}`} title={title}>
       <span className={`size-1.5 rounded-full ${dot}`} aria-hidden />
-      {sync.state === "error" ? "Sync error" : sync.label}
+      {sync.state === "error" ? "Błąd synchronizacji" : sync.label}
     </span>
   );
 }
@@ -113,9 +114,9 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
   const { reservation: r } = bar;
   const channel = CHANNELS[r.source];
   const n = nights(r);
-  const description = `${propertyName}: ${channel.label}, ${formatDate(r.startDate)} → ${formatDate(r.endDate)}, ${n} ${
-    n === 1 ? "night" : "nights"
-  }${r.summary ? `, ${r.summary}` : ""}`;
+  const description = `${propertyName}: ${channel.label}, ${formatDate(r.startDate)} → ${formatDate(r.endDate)}, ${nightsLabel(n)}${
+    r.summary ? `, ${r.summary}` : ""
+  }`;
 
   return (
     <div
@@ -131,7 +132,7 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
         backgroundColor: channel.color,
       }}
     >
-      {bar.endHalf - bar.startHalf >= 2 && `${n}n`}
+      {bar.endHalf - bar.startHalf >= 2 && `${n} n.`}
     </div>
   );
 }

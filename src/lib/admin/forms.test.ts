@@ -39,7 +39,7 @@ describe("parseChannel", () => {
 
   it("rejects non-https links unless explicitly allowed (local development)", () => {
     const http = form({ ...valid, ical_url: "http://127.0.0.1:9999/feed.ics" });
-    expect(parseChannel(http)).toMatchObject({ ok: false, errors: { ical_url: "The link must start with https://." } });
+    expect(parseChannel(http)).toMatchObject({ ok: false, errors: { ical_url: "Link musi zaczynać się od https://." } });
     expect(parseChannel(http, { allowHttp: true }).ok).toBe(true);
   });
 

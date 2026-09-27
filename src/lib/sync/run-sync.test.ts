@@ -87,11 +87,11 @@ describe("runSync", () => {
     expect(mem.reservations(booking.id)).toHaveLength(3);
     expect(mem.channelState(booking.id)).toEqual({ lastSyncedAt: NOW, lastSyncError: null });
     expect(mem.channelState(airbnb.id)).toEqual({ lastSyncedAt: null, lastSyncError: "Timed out after 15 s" });
-    expect(mem.channelState(other.id).lastSyncError).toBe("Response is not an iCalendar feed");
+    expect(mem.channelState(other.id).lastSyncError).toBe("Odpowiedź nie jest kalendarzem iCal");
     expect(mem.syncEvents[0]).toMatchObject({
       trigger: "cron",
       ok: false,
-      error: "2 of 3 channels failed: Timed out after 15 s; Response is not an iCalendar feed",
+      error: "Błąd w 2 z 3 kanałów: Timed out after 15 s; Odpowiedź nie jest kalendarzem iCal",
     });
   });
 

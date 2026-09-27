@@ -124,7 +124,7 @@ function summarizeSync(channels: ChannelStatus[], now: Date): SyncSummary {
 
   // The oldest channel sync is the honest "last synced" for a property.
   const oldest = synced.length === channels.length && synced.length > 0 ? synced.sort()[0] : null;
-  const label = oldest ? `Synced ${formatRelative(new Date(oldest), now)}` : "Never synced";
+  const label = oldest ? `Sync. ${formatRelative(new Date(oldest), now)}` : "Nigdy nie synchronizowano";
 
   if (errors.length > 0) return { state: "error", label, errors };
   if (!oldest) return { state: "never", label };
@@ -171,7 +171,7 @@ export async function loadDashboardData(
       ownerId: p.owner_id,
       ownerName: p.owner?.full_name ?? null,
     })),
-    owners: owners.data!.map((o) => ({ id: o.id, name: o.full_name ?? "Unnamed owner" })),
+    owners: owners.data!.map((o) => ({ id: o.id, name: o.full_name ?? "Właściciel bez nazwy" })),
     channels: channels.data!.map((c) => ({
       id: c.id,
       propertyId: c.property_id,

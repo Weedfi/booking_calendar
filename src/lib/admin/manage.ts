@@ -74,7 +74,7 @@ export async function loadOwners(supabase: SupabaseClient<Database>): Promise<Ow
     const user = userById.get(p.id);
     return {
       id: p.id,
-      name: p.full_name ?? "Unnamed owner",
+      name: p.full_name ?? "Właściciel bez nazwy",
       email: user?.email ?? null,
       pending: Boolean(user?.invited_at) && !user?.last_sign_in_at,
       propertyNames: properties.data.filter((x) => x.owner_id === p.id).map((x) => x.name),
@@ -85,5 +85,5 @@ export async function loadOwners(supabase: SupabaseClient<Database>): Promise<Ow
 export async function loadOwnerOptions(supabase: SupabaseClient<Database>) {
   const { data, error } = await supabase.from("profiles").select("id, full_name").eq("role", "owner").order("full_name");
   if (error) throw error;
-  return data.map((o) => ({ id: o.id, name: o.full_name ?? "Unnamed owner" }));
+  return data.map((o) => ({ id: o.id, name: o.full_name ?? "Właściciel bez nazwy" }));
 }

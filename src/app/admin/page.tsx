@@ -15,7 +15,7 @@ import { RefreshButton } from "./_components/refresh-button";
 import { TapeChart } from "./_components/tape-chart";
 import { TurnoverPanel, UpcomingList } from "./_components/turnovers";
 
-export const metadata: Metadata = { title: "Calendar" };
+export const metadata: Metadata = { title: "Kalendarz" };
 
 // "Refresh now" runs a full sync inside a server action on this page.
 export const maxDuration = 60;
@@ -32,7 +32,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
     loadSyncStatus(supabase, now),
   ]);
   const dashboard = buildDashboard(data, requested, today, now);
-  const monthLabel = formatDate(dashboard.occupancyMonth.start, { weekday: undefined, day: undefined });
+  const monthLabel = formatDate(dashboard.occupancyMonth.start, { weekday: undefined, day: undefined, month: "long" });
 
   return (
     <>
@@ -65,7 +65,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
             rows={dashboard.rows}
             days={dashboard.days}
             today={today}
-            occupancyLabel={`${monthLabel} occupancy`}
+            occupancyLabel={`obłożenie (${monthLabel})`}
           />
         </div>
       </main>
@@ -96,7 +96,7 @@ function SyncBar({ status, propertyNames }: { status: SyncStatus; propertyNames:
 
 function Legend() {
   return (
-    <ul className="flex items-center gap-3 text-xs text-slate-600" aria-label="Channel colors">
+    <ul className="flex items-center gap-3 text-xs text-slate-600" aria-label="Kolory kanałów">
       {Object.values(CHANNELS).map(({ label, color }) => (
         <li key={label} className="flex items-center gap-1.5">
           <span className="h-2.5 w-5 rounded-full" style={{ backgroundColor: color }} aria-hidden />

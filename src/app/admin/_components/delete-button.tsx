@@ -24,7 +24,7 @@ export function DeleteButton({ action, id, label, confirmText }: Props) {
       className="flex items-center gap-2"
     >
       <input type="hidden" name="id" value={id} />
-      <SubmitButton variant="danger" pendingText="Deleting…">
+      <SubmitButton variant="danger" pendingText="Usuwanie…">
         {label}
       </SubmitButton>
       {state.status === "error" && <FormMessage state={state} />}

@@ -84,8 +84,8 @@ describe("buildDashboard", () => {
 
   it("summarizes sync status per property", () => {
     const rows = Object.fromEntries(build().rows.map((r) => [r.property.id, r.sync]));
-    expect(rows[LOFT]).toEqual({ state: "ok", label: "Synced 2 min ago" });
-    expect(rows[STUDIO]).toEqual({ state: "error", label: "Synced 1 h ago", errors: ["airbnb: HTTP 404 Not Found"] });
-    expect(rows[CHALET]).toEqual({ state: "never", label: "Never synced" });
+    expect(rows[LOFT]).toEqual({ state: "ok", label: "Sync. 2 min temu" });
+    expect(rows[STUDIO]).toEqual({ state: "error", label: "Sync. 1 godz. temu", errors: ["airbnb: HTTP 404 Not Found"] });
+    expect(rows[CHALET]).toEqual({ state: "never", label: "Nigdy nie synchronizowano" });
   });
 });

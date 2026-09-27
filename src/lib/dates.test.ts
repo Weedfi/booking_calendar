@@ -42,6 +42,6 @@ describe("dates", () => {
   });
 
   it("formats dates without timezone shifts", () => {
-    expect(formatDate("2031-02-03")).toBe("Mon 3 Feb");
+    expect(formatDate("2031-02-03")).toBe("pon., 3 lut");
   });
 });

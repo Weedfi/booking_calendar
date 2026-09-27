@@ -15,7 +15,7 @@ export function ChannelForm({ propertyId }: { propertyId: string }) {
   return (
     <form action={action} className="grid gap-3 sm:grid-cols-[10rem_1fr_auto] sm:items-end">
       <input type="hidden" name="property_id" value={propertyId} />
-      <Field label="Channel" name="source" state={state}>
+      <Field label="Kanał" name="source" state={state}>
         <select key={state.values?.source} name="source" defaultValue={state.values?.source ?? "booking"} className={inputClass}>
           {Object.entries(CHANNELS).map(([value, { label }]) => (
             <option key={value} value={value}>
@@ -24,7 +24,7 @@ export function ChannelForm({ propertyId }: { propertyId: string }) {
           ))}
         </select>
       </Field>
-      <Field label="iCal export link" name="ical_url" state={state}>
+      <Field label="Link eksportu iCal" name="ical_url" state={state}>
         <input
           name="ical_url"
           type="url"
@@ -36,8 +36,8 @@ export function ChannelForm({ propertyId }: { propertyId: string }) {
           className={inputClass}
         />
       </Field>
-      <SubmitButton variant="secondary" pendingText="Adding & syncing…">
-        Add channel
+      <SubmitButton variant="secondary" pendingText="Dodawanie i synchronizacja…">
+        Dodaj kanał
       </SubmitButton>
       <div className="sm:col-span-3">
         <FormMessage state={state} />

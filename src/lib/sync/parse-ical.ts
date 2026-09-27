@@ -16,7 +16,7 @@ export type ParsedFeed = {
 };
 
 export class InvalidFeedError extends Error {
-  constructor(message = "Response is not an iCalendar feed") {
+  constructor(message = "Odpowiedź nie jest kalendarzem iCal") {
     super(message);
     this.name = "InvalidFeedError";
   }
