@@ -37,3 +37,23 @@ describe("buildOwnerView", () => {
     expect(view.nextMonth).toBe("2031-03-01");
   });
 });
+
+describe("buildOwnerView while closed for sale", () => {
+  const closure = stay("closed", "2031-02-12", "2032-08-12");
+  const view = buildOwnerView([loft], loft, [stay("a", "2031-02-10", "2031-02-12"), closure], [closure], "2031-02-01", TODAY);
+
+  it("says until when the property is closed", () => {
+    expect(view.closedUntil).toBe("2032-08-12");
+  });
+
+  it("does not treat the closure as a guest staying or an upcoming stay", () => {
+    expect(view.current).toBeNull();
+    expect(view.upcoming).toEqual([]);
+  });
+
+  it("counts occupancy over the open nights only", () => {
+    // February: 11 open nights (1–11), 2 of them booked.
+    expect(view.bookedNights).toBe(2);
+    expect(view.occupancy).toBeCloseTo(2 / 11);
+  });
+});

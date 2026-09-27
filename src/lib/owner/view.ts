@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
-import { occupancy } from "@/lib/calendar/stats";
+import { closedUntil, openNights, splitClosures } from "@/lib/calendar/closures";
 import type { ChannelSource } from "@/lib/calendar/tape-chart";
-import { addDays, daysBetween, isDateKey, monthRange, type DateKey } from "@/lib/dates";
+import { addDays, isDateKey, monthRange, type DateKey } from "@/lib/dates";
 import { monthGrid, monthGridWindow, type GridDay } from "./month-grid";
 
 export type OwnerProperty = { id: string; name: string; address: string | null; color: string };
@@ -39,8 +39,11 @@ export type OwnerView = {
   prevMonth: DateKey;
   nextMonth: DateKey;
   weeks: GridDay[][];
-  occupancy: number;
+  /** Share of open nights booked; null when the whole month is closed for sale. */
+  occupancy: number | null;
   bookedNights: number;
+  /** Set while the property is closed for sale: the day it reopens. */
+  closedUntil: DateKey | null;
   current: OwnerStay | null;
   upcoming: OwnerStay[];
 };
@@ -75,7 +78,8 @@ export async function loadOwnerView(
 
   const [inMonth, upcoming] = await Promise.all([
     activeStays().gte("end_date", window.from).lt("start_date", window.to).order("start_date"),
-    activeStays().gt("end_date", today).order("start_date").limit(8),
+    // A few extra rows, since closed-for-sale blocks are filtered out below.
+    activeStays().gt("end_date", today).order("start_date").limit(12),
   ]);
   if (inMonth.error) throw inMonth.error;
   if (upcoming.error) throw upcoming.error;
@@ -99,8 +103,11 @@ export function buildOwnerView(
   today: DateKey,
 ): OwnerView {
   const { start, end } = monthRange(month);
-  const share = occupancy(monthStays, start, end);
-  const current = upcomingStays.find((s) => s.startDate <= today && today < s.endDate) ?? null;
+  // Closed-for-sale blocks are shown as closed, never as stays.
+  const inMonth = splitClosures(monthStays);
+  const ahead = splitClosures(upcomingStays);
+  const nights = openNights(inMonth.stays, inMonth.closures, start, end);
+  const current = ahead.stays.find((s) => s.startDate <= today && today < s.endDate) ?? null;
 
   return {
     properties,
@@ -108,11 +115,12 @@ export function buildOwnerView(
     month: start,
     prevMonth: monthRange(addDays(start, -1)).start,
     nextMonth: end,
-    weeks: monthGrid(monthStays, start, today),
-    occupancy: share,
-    bookedNights: Math.round(share * daysBetween(start, end)),
+    weeks: monthGrid(inMonth.stays, start, today, inMonth.closures),
+    occupancy: nights.open > 0 ? nights.booked / nights.open : null,
+    bookedNights: nights.booked,
+    closedUntil: closedUntil(ahead.closures, today),
     current,
-    upcoming: upcomingStays.filter((s) => s !== current),
+    upcoming: ahead.stays.filter((s) => s !== current).slice(0, 8),
   };
 }
 

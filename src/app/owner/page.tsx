@@ -66,9 +66,16 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
         </div>
 
         <dl className="grid grid-cols-2 gap-3">
-          <Stat label={`Obłożenie (${monthName})`} value={`${Math.round(view.occupancy * 100)}%`} />
+          <Stat label={`Obłożenie (${monthName})`} value={view.occupancy === null ? "—" : `${Math.round(view.occupancy * 100)}%`} />
           <Stat label={`Zajęte noce (${monthName})`} value={String(view.bookedNights)} />
         </dl>
+
+        {view.closedUntil && (
+          <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
+            <span className="font-semibold">Zamknięte na rezerwacje</span> w Booking.com do {formatDate(view.closedUntil)}.
+            Ten okres nie liczy się do obłożenia.
+          </p>
+        )}
 
         {view.current && (
           <p className="rounded-xl bg-indigo-50 p-3 text-sm text-indigo-950">

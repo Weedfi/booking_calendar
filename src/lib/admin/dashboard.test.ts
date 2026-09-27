@@ -89,3 +89,33 @@ describe("buildDashboard", () => {
     expect(rows[CHALET]).toEqual({ state: "never", label: "Nigdy nie synchronizowano" });
   });
 });
+
+describe("buildDashboard with a property closed for sale", () => {
+  // What Booking.com exports for a closed apartment: one block until the feed ends.
+  const closed: DashboardData = {
+    ...data,
+    reservations: [...data.reservations, stay(LOFT, "2031-01-20", "2032-07-20")],
+  };
+  const dashboard = buildDashboard(closed, parseAdminFilters({}, TODAY), TODAY, NOW);
+  const loft = dashboard.rows.find((r) => r.property.id === LOFT)!;
+
+  it("draws the block as a closure, not as a stay", () => {
+    expect(loft.closures).toHaveLength(1);
+    expect(loft.layout.bars.map((b) => b.reservation.endDate)).toEqual(["2031-01-15", "2031-01-18"]);
+  });
+
+  it("counts occupancy over open nights only", () => {
+    // January: 19 open nights (1–19), 6 of them booked (12–14 and 15–17).
+    expect(loft.occupancy).toBeCloseTo(6 / 19);
+  });
+
+  it("never lists the closure as a check-in", () => {
+    const checkIns = dashboard.turnovers.flatMap((d) => d.checkIns.map((c) => c.reservation.endDate));
+    expect(checkIns).not.toContain("2032-07-20");
+  });
+
+  it("shows no occupancy for a month that is entirely closed", () => {
+    const march = buildDashboard(closed, parseAdminFilters({ from: "2031-03-03" }, TODAY), TODAY, NOW);
+    expect(march.rows.find((r) => r.property.id === LOFT)!.occupancy).toBeNull();
+  });
+});

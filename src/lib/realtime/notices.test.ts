@@ -53,3 +53,16 @@ describe("messages", () => {
     expect(batchMessages(burst, names)).toEqual(["Zmiany w rezerwacjach: 4 (2 mieszkania)"]);
   });
 });
+
+describe("closures in live notices", () => {
+  const closure = row({ start_date: "2026-09-28", end_date: "2028-03-28" });
+
+  it("reports a closure as closed for sale, not as a new booking", () => {
+    expect(toNotice({ eventType: "INSERT", new: closure, old: {} })?.kind).toBe("closed");
+    expect(noticeText(toNotice({ eventType: "INSERT", new: closure, old: {} })!, "Loft")).toMatch(/^Zamknięto na rezerwacje: Loft/);
+  });
+
+  it("reports a cancelled closure as reopened", () => {
+    expect(toNotice({ eventType: "UPDATE", new: { ...closure, status: "cancelled" }, old: { id: "r1" } })?.kind).toBe("reopened");
+  });
+});

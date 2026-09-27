@@ -1,11 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { rangeEnd, type AdminFilters } from "@/lib/calendar/filters";
-import { formatRelative, occupancy, turnovers } from "@/lib/calendar/stats";
+import { openOccupancy, splitClosures } from "@/lib/calendar/closures";
+import { formatRelative, turnovers } from "@/lib/calendar/stats";
 import {
   layoutProperty,
   type CalendarReservation,
   type ChannelSource,
+  type Bar,
   type PropertyLayout,
 } from "@/lib/calendar/tape-chart";
 import { addDays, daysBetween, eachDay, maxDate, minDate, monthRange, type DateKey } from "@/lib/dates";
@@ -44,7 +46,10 @@ export type SyncSummary =
 export type DashboardRow = {
   property: PropertyRecord;
   layout: PropertyLayout;
-  occupancy: number;
+  /** Periods closed for sale, drawn behind the stays. */
+  closures: Bar[];
+  /** Share of open nights booked this month; null if the month is fully closed. */
+  occupancy: number | null;
   sync: SyncSummary;
 };
 
@@ -79,7 +84,10 @@ export function buildDashboard(
   const visibleIds = new Set(visible.map((p) => p.id));
   const bySource = <T extends { source: ChannelSource }>(x: T) => !filters.source || x.source === filters.source;
 
-  const reservations = data.reservations.filter((r) => visibleIds.has(r.propertyId) && bySource(r));
+  // Closed-for-sale blocks are not stays: kept apart from occupancy and turnovers.
+  const { stays: reservations, closures } = splitClosures(
+    data.reservations.filter((r) => visibleIds.has(r.propertyId) && bySource(r)),
+  );
   const channels = data.channels.filter((c) => visibleIds.has(c.propertyId) && bySource(c));
   const propertyById = new Map(visible.map((p) => [p.id, p]));
 
@@ -87,10 +95,12 @@ export function buildDashboard(
 
   const rows = visible.map((property): DashboardRow => {
     const own = reservations.filter((r) => r.propertyId === property.id);
+    const closed = closures.filter((r) => r.propertyId === property.id);
     return {
       property,
       layout: layoutProperty(own, filters.from, filters.days),
-      occupancy: occupancy(own, occupancyMonth.start, occupancyMonth.end),
+      closures: layoutProperty(closed, filters.from, filters.days).bars,
+      occupancy: openOccupancy(own, closed, occupancyMonth.start, occupancyMonth.end),
       sync: summarizeSync(channels.filter((c) => c.propertyId === property.id), now),
     };
   });

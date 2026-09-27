@@ -50,3 +50,20 @@ describe("monthGridWindow", () => {
     expect(monthGridWindow("2031-02-01")).toEqual({ from: "2031-01-26", to: "2031-03-03" });
   });
 });
+
+describe("monthGrid with closures", () => {
+  it("marks closed halves separately from booked ones", () => {
+    const days = monthGrid(
+      [{ startDate: "2031-02-10", endDate: "2031-02-12" }],
+      "2031-02-01",
+      "2031-02-01",
+      [{ startDate: "2031-02-12", endDate: "2031-06-01" }],
+    ).flat();
+    const byDate = Object.fromEntries(days.map((d) => [d.date, d]));
+
+    expect(byDate["2031-02-11"]).toMatchObject({ morning: true, evening: true, closedEvening: false });
+    // Checkout morning is booked, the rest of the day is closed.
+    expect(byDate["2031-02-12"]).toMatchObject({ morning: true, evening: false, closedMorning: false, closedEvening: true });
+    expect(byDate["2031-02-20"]).toMatchObject({ morning: false, evening: false, closedMorning: true, closedEvening: true });
+  });
+});

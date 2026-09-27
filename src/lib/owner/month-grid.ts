@@ -10,6 +10,9 @@ export type GridDay = {
   morning: boolean;
   /** Night starting this day is booked, so the afternoon is taken (a guest checks in or stays on). */
   evening: boolean;
+  /** Same halves, but closed for sale rather than booked. */
+  closedMorning: boolean;
+  closedEvening: boolean;
 };
 
 /**
@@ -17,29 +20,28 @@ export type GridDay = {
  * to whole weeks. Each day is split into morning and evening, so check-in
  * and checkout days show as half-booked, like a hotel calendar.
  */
-export function monthGrid(stays: Stay[], month: DateKey, today: DateKey): GridDay[][] {
+export function monthGrid(stays: Stay[], month: DateKey, today: DateKey, closures: Stay[] = []): GridDay[][] {
   const { start, end } = monthRange(month);
   const gridStart = startOfWeek(start);
   const gridEnd = addDays(startOfWeek(addDays(end, -1)), 7);
 
-  const bookedNights = new Set<DateKey>();
-  for (const stay of stays) {
-    for (let night = stay.startDate; night < stay.endDate; night = addDays(night, 1)) {
-      bookedNights.add(night);
-    }
-  }
+  const bookedNights = nightsOf(stays);
+  const closedNights = nightsOf(closures);
 
   const weeks: GridDay[][] = [];
   const count = daysBetween(gridStart, gridEnd);
   for (let i = 0; i < count; i++) {
     const date = addDays(gridStart, i);
+    const previous = addDays(date, -1);
     if (i % 7 === 0) weeks.push([]);
     weeks[weeks.length - 1].push({
       date,
       inMonth: date >= start && date < end,
       isToday: date === today,
-      morning: bookedNights.has(addDays(date, -1)),
+      morning: bookedNights.has(previous),
       evening: bookedNights.has(date),
+      closedMorning: closedNights.has(previous) && !bookedNights.has(previous),
+      closedEvening: closedNights.has(date) && !bookedNights.has(date),
     });
   }
   return weeks;
@@ -52,4 +54,12 @@ export function monthGridWindow(month: DateKey): { from: DateKey; to: DateKey } 
     from: addDays(startOfWeek(start), -1),
     to: addDays(startOfWeek(addDays(end, -1)), 7),
   };
+}
+
+function nightsOf(stays: Stay[]): Set<DateKey> {
+  const nights = new Set<DateKey>();
+  for (const stay of stays) {
+    for (let night = stay.startDate; night < stay.endDate; night = addDays(night, 1)) nights.add(night);
+  }
+  return nights;
 }

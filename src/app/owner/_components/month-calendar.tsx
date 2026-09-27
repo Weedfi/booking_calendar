@@ -4,6 +4,7 @@ import { formatDate, type DateKey } from "@/lib/dates";
 import { capitalize } from "@/lib/i18n";
 
 const BOOKED = "#a5b4fc"; // indigo-300: dark text stays readable on it
+const CLOSED = "#e2e8f0"; // slate-200: closed for sale, not booked
 const WEEKDAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
 type Props = {
@@ -67,20 +68,25 @@ export function MonthCalendar({ weeks, month, prevHref, nextHref }: Props) {
         <li className="flex items-center gap-1.5">
           <span className="size-3 rounded border border-slate-200 bg-white" aria-hidden /> Wolne
         </li>
+        <li className="flex items-center gap-1.5">
+          <span className="size-3 rounded" style={{ background: CLOSED }} aria-hidden /> Zamknięte
+        </li>
       </ul>
     </section>
   );
 }
 
-function fill({ morning, evening }: Pick<GridDay, "morning" | "evening">): string {
-  if (morning && evening) return BOOKED;
-  if (evening) return `linear-gradient(135deg, white 50%, ${BOOKED} 50%)`;
-  if (morning) return `linear-gradient(135deg, ${BOOKED} 50%, white 50%)`;
-  return "white";
+type Halves = Pick<GridDay, "morning" | "evening"> & Partial<Pick<GridDay, "closedMorning" | "closedEvening">>;
+
+function fill({ morning, evening, closedMorning = false, closedEvening = false }: Halves): string {
+  const am = morning ? BOOKED : closedMorning ? CLOSED : "white";
+  const pm = evening ? BOOKED : closedEvening ? CLOSED : "white";
+  return am === pm ? am : `linear-gradient(135deg, ${am} 50%, ${pm} 50%)`;
 }
 
-function describe({ morning, evening }: GridDay): string {
+function describe({ morning, evening, closedMorning, closedEvening }: GridDay): string {
   if (morning && evening) return "zajęte";
+  if (closedMorning && closedEvening) return "zamknięte na rezerwacje";
   if (evening) return "dzień zameldowania";
   if (morning) return "dzień wymeldowania";
   return "wolne";

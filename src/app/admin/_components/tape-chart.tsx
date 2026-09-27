@@ -67,6 +67,9 @@ export function TapeChart({ rows, days, today, occupancyLabel }: Props) {
                 className={`border-l border-slate-100 ${day === today ? "bg-amber-50" : isWeekend(day) ? "bg-slate-50" : ""}`}
               />
             ))}
+            {row.closures.map((bar) => (
+              <ClosureBand key={bar.reservation.id} bar={bar} laneCount={row.layout.laneCount} />
+            ))}
             {row.layout.bars.map((bar) => (
               <ReservationBar key={bar.reservation.id} bar={bar} propertyName={row.property.name} />
             ))}
@@ -87,8 +90,11 @@ function PropertyLabel({ row }: { row: DashboardRow }) {
       <div className="flex items-center gap-2">
         <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: property.color }} aria-hidden />
         <span className="truncate text-sm font-medium">{property.name}</span>
-        <span className="ml-auto text-xs tabular-nums text-slate-500" title="Obłożenie w miesiącu">
-          {Math.round(row.occupancy * 100)}%
+        <span
+          className="ml-auto text-xs tabular-nums text-slate-500"
+          title={row.occupancy === null ? "Cały miesiąc zamknięty na rezerwacje" : "Obłożenie otwartych dni w miesiącu"}
+        >
+          {row.occupancy === null ? "—" : `${Math.round(row.occupancy * 100)}%`}
         </span>
       </div>
       <div className="flex items-center gap-2 pl-4.5 text-xs text-slate-500">
@@ -133,6 +139,27 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
       }}
     >
       {bar.endHalf - bar.startHalf >= 2 && `${n} n.`}
+    </div>
+  );
+}
+
+/** A period closed for sale: a hatched band behind the stays, not a booking. */
+function ClosureBand({ bar, laneCount }: { bar: Bar; laneCount: number }) {
+  const { reservation: r } = bar;
+  const description = `Zamknięte na rezerwacje: ${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
+  return (
+    <div
+      role="img"
+      aria-label={description}
+      title={description}
+      className="z-[5] my-1 flex items-center overflow-hidden px-2 text-xs font-medium whitespace-nowrap text-slate-600"
+      style={{
+        gridColumn: `${2 + bar.startHalf} / ${2 + bar.endHalf}`,
+        gridRow: `1 / span ${laneCount}`,
+        background: "repeating-linear-gradient(135deg, #e2e8f0 0 6px, #f1f5f9 6px 12px)",
+      }}
+    >
+      Zamknięte
     </div>
   );
 }

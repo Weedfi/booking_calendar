@@ -1,3 +1,4 @@
+import { isClosure } from "@/lib/calendar/closures";
 import { plural } from "@/lib/i18n";
 import { formatDate } from "@/lib/dates";
 
@@ -18,7 +19,7 @@ export type ReservationChange = {
 };
 
 export type Notice = {
-  kind: "new" | "cancelled" | "updated";
+  kind: "new" | "cancelled" | "updated" | "closed" | "reopened";
   propertyId: string;
   startDate: string;
   endDate: string;
@@ -34,6 +35,12 @@ export function toNotice(change: ReservationChange): Notice | null {
   if (!row.property_id || !row.start_date || !row.end_date || !row.status) return null;
   const base = { propertyId: row.property_id, startDate: row.start_date, endDate: row.end_date };
 
+  // A long block is the property being closed for sale, not a booking.
+  if (isClosure(base)) {
+    if (change.eventType === "DELETE") return null;
+    return { kind: row.status === "cancelled" ? "reopened" : "closed", ...base };
+  }
+
   if (change.eventType === "INSERT") return row.status === "active" ? { kind: "new", ...base } : null;
   if (change.eventType === "UPDATE") return { kind: row.status === "cancelled" ? "cancelled" : "updated", ...base };
   return null;
@@ -43,6 +50,8 @@ const LABELS: Record<Notice["kind"], string> = {
   new: "Nowa rezerwacja",
   cancelled: "Anulowano",
   updated: "Zmiana rezerwacji",
+  closed: "Zamknięto na rezerwacje",
+  reopened: "Otwarto na rezerwacje",
 };
 
 /** "Nowa rezerwacja: Old Town Loft, pt., 9 paź → pon., 12 paź" */

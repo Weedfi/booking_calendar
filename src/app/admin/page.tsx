@@ -103,6 +103,14 @@ function Legend() {
           {label}
         </li>
       ))}
+      <li className="flex items-center gap-1.5">
+        <span
+          className="h-2.5 w-5 rounded-sm"
+          style={{ background: "repeating-linear-gradient(135deg, #cbd5e1 0 3px, #f1f5f9 3px 6px)" }}
+          aria-hidden
+        />
+        Zamknięte
+      </li>
     </ul>
   );
 }
