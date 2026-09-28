@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { GridDay } from "@/lib/owner/month-grid";
 import { formatDate, type DateKey } from "@/lib/dates";
-import { BLOCKED_PATTERN } from "@/lib/calendar/closures";
 import { capitalize } from "@/lib/i18n";
 
 const BOOKED = "#a5b4fc"; // indigo-300: dark text stays readable on it
-const CLOSED = "#94a3b8"; // slate-400: blocked half of a day
+const CLOSED = "#e2e8f0"; // slate-200: closed for sale, not booked
 const WEEKDAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
 type Props = {
@@ -70,7 +69,7 @@ export function MonthCalendar({ weeks, month, prevHref, nextHref }: Props) {
           <span className="size-3 rounded border border-slate-200 bg-white" aria-hidden /> Wolne
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded" style={{ background: BLOCKED_PATTERN }} aria-hidden /> Zablokowane
+          <span className="size-3 rounded" style={{ background: CLOSED }} aria-hidden /> Zamknięte
         </li>
       </ul>
     </section>
@@ -82,13 +81,12 @@ type Halves = Pick<GridDay, "morning" | "evening"> & Partial<Pick<GridDay, "clos
 function fill({ morning, evening, closedMorning = false, closedEvening = false }: Halves): string {
   const am = morning ? BOOKED : closedMorning ? CLOSED : "white";
   const pm = evening ? BOOKED : closedEvening ? CLOSED : "white";
-  if (am === CLOSED && pm === CLOSED) return BLOCKED_PATTERN;
   return am === pm ? am : `linear-gradient(135deg, ${am} 50%, ${pm} 50%)`;
 }
 
 function describe({ morning, evening, closedMorning, closedEvening }: GridDay): string {
   if (morning && evening) return "zajęte";
-  if (closedMorning && closedEvening) return "zablokowane";
+  if (closedMorning && closedEvening) return "zamknięte na rezerwacje";
   if (evening) return "dzień zameldowania";
   if (morning) return "dzień wymeldowania";
   return "wolne";

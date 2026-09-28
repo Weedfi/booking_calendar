@@ -50,8 +50,8 @@ const LABELS: Record<Notice["kind"], string> = {
   new: "Nowa rezerwacja",
   cancelled: "Anulowano",
   updated: "Zmiana rezerwacji",
-  closed: "Zablokowano",
-  reopened: "Odblokowano",
+  closed: "Zamknięto na rezerwacje",
+  reopened: "Otwarto na rezerwacje",
 };
 
 /** "Nowa rezerwacja: Old Town Loft, pt., 9 paź → pon., 12 paź" */

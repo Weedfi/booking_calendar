@@ -156,6 +156,6 @@ With `DEMO_MODE=true`, the login page offers one-click sign-in as the demo manag
 
 - **iCal is the single source of truth.** Emails only say that something changed, which keeps the app read-only towards Booking.com and resilient to changes in the email format.
 - **Half-day bars** match how rentals work: a checkout morning and a check-in afternoon share a day.
-- **Closed dates are not bookings.** Booking.com exports closed-for-sale dates exactly like bookings, and a closed apartment shows up as one block to the end of the feed. Blocks of more than 30 nights are drawn as "blocked" (striped, with a lock) and left out of occupancy, check-ins and upcoming stays. A booking from another channel inside a closure still counts ([closures.ts](src/lib/calendar/closures.ts)).
+- **Closed dates are not bookings.** Booking.com exports closed-for-sale dates exactly like bookings, and a closed apartment shows up as one block to the end of the feed. Blocks of more than 30 nights are drawn as "closed" and left out of occupancy, check-ins and upcoming stays. A booking from another channel inside a closure still counts ([closures.ts](src/lib/calendar/closures.ts)).
 - **Server-rendered pages plus Realtime refresh** instead of client-side state: the server stays the single place that applies filters and RLS, and the browser only asks for a re-render.
 - **Serverless limits:** debounce state lives in `sync_events`, not in memory, and the follow-up sync runs in `after()` within the free plan's 60 s limit.

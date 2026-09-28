@@ -59,7 +59,7 @@ describe("closures in live notices", () => {
 
   it("reports a closure as closed for sale, not as a new booking", () => {
     expect(toNotice({ eventType: "INSERT", new: closure, old: {} })?.kind).toBe("closed");
-    expect(noticeText(toNotice({ eventType: "INSERT", new: closure, old: {} })!, "Loft")).toMatch(/^Zablokowano: Loft/);
+    expect(noticeText(toNotice({ eventType: "INSERT", new: closure, old: {} })!, "Loft")).toMatch(/^Zamknięto na rezerwacje: Loft/);
   });
 
   it("reports a cancelled closure as reopened", () => {

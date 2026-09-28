@@ -6,14 +6,11 @@ type Stay = { startDate: DateKey; endDate: DateKey };
  * Booking.com exports bookings and closed dates the same way
  * ("CLOSED - Not available"). A property closed for sale shows up as one
  * block running to the end of the feed (about 18 months). Blocks of more
- * than 30 nights are treated as "blocked", not as a stay: they are drawn
+ * than 30 nights are treated as "closed", not as a stay: they are drawn
  * differently and never count as occupancy, check-ins or upcoming stays.
  * The stored data is unchanged.
  */
 export const CLOSURE_MIN_NIGHTS = 31;
-
-/** Diagonal stripes for blocked dates, unlike any channel's solid colour. */
-export const BLOCKED_PATTERN = "repeating-linear-gradient(135deg, #94a3b8 0 4px, #e2e8f0 4px 8px)";
 
 export function isClosure(stay: Stay): boolean {
   return daysBetween(stay.startDate, stay.endDate) >= CLOSURE_MIN_NIGHTS;
