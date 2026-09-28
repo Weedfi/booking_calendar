@@ -36,10 +36,11 @@ export function createEmailTriggerDeps(): EmailTriggerDeps {
     runLater: (task) => after(task),
     saveGuest: async (propertyId, guest) => {
       const key = { property_id: propertyId, start_date: guest.checkIn, end_date: guest.checkOut };
-      // A name entered by hand always wins over one read from an email.
+      // Priority manual > import > email: an email never replaces a name typed
+      // by hand or imported from the Booking.com export.
       const { data: existing, error: readError } = await db.from("guest_stays").select("source").match(key).maybeSingle();
       if (readError) throw readError;
-      if (existing?.source === "manual") return;
+      if (existing && existing.source !== "email") return;
       const { error } = await db
         .from("guest_stays")
         .upsert({ ...key, guest_name: guest.guestName, source: "email" }, { onConflict: "property_id,start_date,end_date" });

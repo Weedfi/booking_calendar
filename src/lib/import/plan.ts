@@ -21,34 +21,50 @@ export type ImportRecord = {
   status: "active";
 };
 
+/** A guest name for a stay (apartment + dates), from the file. */
+export type ImportGuest = { property_id: string; start_date: DateKey; end_date: DateKey; guest_name: string };
+
 export type ImportPlan = {
   records: ImportRecord[];
+  /** Names for every non-cancelled stay in the file, past or future. */
+  guests: ImportGuest[];
   skipped: { cancelled: number; notFinished: number; unknownRooms: string[]; noChannel: string[] };
 };
 
 /**
- * Turns export rows into reservation rows. Only finished stays are imported:
+ * Turns export rows into reservation rows and guest names. Guest names are
+ * taken for every non-cancelled stay; reservations only for finished stays:
  * current and future ones come from the iCal feed, and importing them here
  * would duplicate them (the sync would also cancel them, as they are not in
  * the feed). The external UID is derived from the reservation number, so
  * importing the same file twice changes nothing.
  */
 export function planImport(rows: ExportRow[], properties: ImportableProperty[], today: DateKey): ImportPlan {
-  const plan: ImportPlan = { records: [], skipped: { cancelled: 0, notFinished: 0, unknownRooms: [], noChannel: [] } };
+  const plan: ImportPlan = { records: [], guests: [], skipped: { cancelled: 0, notFinished: 0, unknownRooms: [], noChannel: [] } };
   const seen = new Set<string>();
+  const seenGuests = new Set<string>();
 
   for (const row of rows) {
     if (row.cancelled) {
       plan.skipped.cancelled++;
       continue;
     }
-    if (row.checkOut > today) {
-      plan.skipped.notFinished++;
-      continue;
-    }
     const property = findProperty(row.room, properties);
     if (!property) {
       if (!plan.skipped.unknownRooms.includes(row.room)) plan.skipped.unknownRooms.push(row.room);
+      continue;
+    }
+
+    // Names are keyed by apartment and dates, so they also attach to future
+    // stays that arrive through the iCal feed.
+    const guestKey = `${property.id}|${row.checkIn}|${row.checkOut}`;
+    if (row.guestName && !seenGuests.has(guestKey)) {
+      seenGuests.add(guestKey);
+      plan.guests.push({ property_id: property.id, start_date: row.checkIn, end_date: row.checkOut, guest_name: row.guestName });
+    }
+
+    if (row.checkOut > today) {
+      plan.skipped.notFinished++;
       continue;
     }
     const channel = property.channels.find((c) => c.source === "booking") ?? property.channels[0];

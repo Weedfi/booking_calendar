@@ -287,7 +287,7 @@ export type Database = {
     }
     Enums: {
       channel_source: "booking" | "airbnb" | "other"
-      guest_name_source: "manual" | "email"
+      guest_name_source: "manual" | "email" | "import"
       property_match: "booking_id" | "name" | "none"
       reservation_status: "active" | "cancelled"
       sync_trigger: "email" | "cron" | "manual"
@@ -423,7 +423,7 @@ export const Constants = {
   public: {
     Enums: {
       channel_source: ["booking", "airbnb", "other"],
-      guest_name_source: ["manual", "email"],
+      guest_name_source: ["manual", "email", "import"],
       property_match: ["booking_id", "name", "none"],
       reservation_status: ["active", "cancelled"],
       sync_trigger: ["email", "cron", "manual"],

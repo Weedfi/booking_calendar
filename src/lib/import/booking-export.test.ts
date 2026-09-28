@@ -26,6 +26,7 @@ describe("parseBookingExport", () => {
       checkIn: "2026-09-19",
       checkOut: "2026-09-20",
       cancelled: false,
+      guestName: "Jan Testowy",
     });
     expect(result.rows[1]).toMatchObject({ checkIn: "2026-09-05", checkOut: "2026-09-08" });
     expect(result.rows[2].cancelled).toBe(true);
@@ -42,9 +43,22 @@ describe("parseBookingExport", () => {
     ]);
   });
 
-  it("never returns guest names or prices", () => {
+  it("reads the guest's name but never prices", () => {
     const result = parseBookingExport(fixture("reservations-pl.csv"));
-    expect(JSON.stringify(result)).not.toMatch(/Jan Testowy|223 PLN|Przykładowa/);
+    expect(result.ok && result.rows.map((r) => r.guestName)).toEqual([
+      "Jan Testowy",
+      "Anna Przykładowa",
+      "Ktoś Anulujący",
+      "Przyszły Gość",
+      "Nieznany Pokój",
+      'Gość "Cytat"',
+    ]);
+    expect(JSON.stringify(result)).not.toMatch(/PLN|223|600/);
+  });
+
+  it("reads the guest column of the English export", () => {
+    const result = parseBookingExport(fixture("reservations-en.xls"));
+    expect(result.ok && result.rows.map((r) => r.guestName)).toEqual(["Test Guest", "Other & Guest"]);
   });
 
   it("explains when the file is not a reservation list", () => {
@@ -86,6 +100,15 @@ describe("planImport", () => {
     expect(plan.records[0]).toMatchObject({ channel_id: "ch-mar", source: "booking", status: "active" });
   });
 
+  it("keeps guest names for past and future stays, but not for cancelled ones", () => {
+    expect(plan.guests).toEqual([
+      { property_id: "aaaaaaaa-1", start_date: "2026-09-19", end_date: "2026-09-20", guest_name: "Jan Testowy" },
+      { property_id: "bbbbbbbb-2", start_date: "2026-09-05", end_date: "2026-09-08", guest_name: "Anna Przykładowa" },
+      { property_id: "bbbbbbbb-2", start_date: "2026-10-10", end_date: "2026-10-12", guest_name: "Przyszły Gość" },
+      { property_id: "aaaaaaaa-1", start_date: "2026-08-28", end_date: "2026-08-30", guest_name: 'Gość "Cytat"' },
+    ]);
+  });
+
   it("skips cancelled and not yet finished stays and reports unknown rooms", () => {
     expect(plan.skipped).toEqual({ cancelled: 1, notFinished: 1, unknownRooms: ["Domek na drzewie"], noChannel: [] });
   });
@@ -98,6 +121,8 @@ describe("planImport", () => {
   it("reports apartments without a channel to attach the stays to", () => {
     const noChannel = planImport(rows, [{ ...properties[0], channels: [] }], TODAY);
     expect(noChannel.records).toEqual([]);
+    // Names still work: they belong to the apartment, not to a channel.
+    expect(noChannel.guests.map((g) => g.guest_name)).toEqual(["Jan Testowy", 'Gość "Cytat"']);
     expect(noChannel.skipped.noChannel).toEqual(["Marynistyczny Apartament 4-osobowy"]);
   });
 });

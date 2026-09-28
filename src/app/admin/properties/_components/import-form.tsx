@@ -16,14 +16,15 @@ export function ImportForm() {
     <form action={action} className="flex flex-col gap-3">
       <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-600">
         <li>
-          W extranecie Booking.com otwórz <strong>Rezerwacje</strong>, wybierz zakres dat (np. ostatni rok) i kliknij{" "}
+          W extranecie Booking.com otwórz <strong>Rezerwacje</strong>, wybierz zakres dat (np. od dziś na 2 miesiące do przodu, albo ostatni rok dla historii) i kliknij{" "}
           <strong>Pobierz</strong>.
         </li>
         <li>Wybierz pobrany plik poniżej. Jeśli to plik Excel, zapisz go najpierw jako CSV (Plik → Zapisz jako → CSV UTF-8).</li>
       </ol>
       <p className="text-xs text-slate-500">
-        Importowane są tylko zakończone, nieanulowane pobyty: pokój i daty. Imiona gości, ceny i dane kontaktowe z pliku są
-        pomijane i nie trafiają do bazy. Ponowny import tego samego pliku nie tworzy duplikatów.
+        Z pliku zapisujemy imię i nazwisko gościa przy każdej nieanulowanej rezerwacji (także przyszłej) oraz zakończone
+        pobyty sprzed pierwszej synchronizacji. Imię wpisane ręcznie nie jest nadpisywane. Ceny i dane kontaktowe są pomijane.
+        Ponowny import tego samego pliku nie tworzy duplikatów.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <input

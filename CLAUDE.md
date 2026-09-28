@@ -14,7 +14,7 @@ Web app for a short-term rental manager who runs ~15 apartments for different ow
 - iCal gives only: UID, DTSTART, DTEND (checkout day, exclusive), SUMMARY (e.g. "CLOSED - Not available"). No guest names, no prices.
 - Bookings and manual blocks look the same in the feed. Treat both as "occupied".
 - Booking.com merges consecutive unavailable days into one event; a property closed for sale shows up as one block to the end of the feed. Blocks of 60+ nights are displayed as "closed", not as stays (src/lib/calendar/closures.ts).
-- The feed only covers today onwards. Older stays can be imported from the extranet reservation export (only room, dates, status, number; no guest data from the file).
+- The feed only covers today onwards and has no guest names. The extranet reservation export can be imported: finished stays become reservations, and guest names are stored for every non-cancelled stay (past or future). Prices and contact details from the file are not stored. Guest name priority: manual > import > email.
 - iCal URLs are secrets. Never send them to the client, never expose them to owners.
 
 ## Stack

@@ -41,10 +41,10 @@ export default async function PropertiesPage() {
         </details>
 
         <details className="rounded-xl border border-slate-200 bg-white p-4">
-          <summary className="cursor-pointer font-medium">Importuj historię rezerwacji z Booking.com</summary>
+          <summary className="cursor-pointer font-medium">Importuj imiona gości i historię z Booking.com</summary>
           <p className="mt-2 mb-3 text-sm text-slate-600">
-            Kalendarz iCal z Booking.com obejmuje tylko dni od dzisiaj. Starsze rezerwacje możesz uzupełnić z listy
-            rezerwacji pobranej z extranetu.
+            Kalendarz iCal z Booking.com nie zawiera imion gości ani dni sprzed dzisiaj. Lista rezerwacji pobrana z extranetu
+            uzupełnia jedno i drugie. Wrzucaj ją co kilka dni, żeby nowe rezerwacje miały imiona.
           </p>
           <ImportForm />
         </details>

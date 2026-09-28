@@ -8,8 +8,9 @@ export { parseDate };
  * Booking.com extranet. The iCal feed only covers today onwards, so this is
  * the only way to see stays from before the first sync.
  *
- * Only room, dates, status and reservation number are read. Guest names,
- * prices and contact details in the file are ignored and never stored.
+ * Read: room, dates, status, reservation number and the guest's name (shown
+ * to the admin and the apartment's owner). Prices and contact details in
+ * the file are ignored and never stored.
  */
 
 export type ExportRow = {
@@ -18,6 +19,8 @@ export type ExportRow = {
   checkIn: DateKey;
   checkOut: DateKey;
   cancelled: boolean;
+  /** Guest name(s) as written in the file; the booker when there is no guest column. */
+  guestName: string | null;
 };
 
 export type ParseResult = { ok: true; rows: ExportRow[]; invalid: number } | { ok: false; error: string };
@@ -28,6 +31,8 @@ const COLUMNS = {
   checkIn: ["zameldowanie", "data przyjazdu", "przyjazd", "check in", "arrival"],
   checkOut: ["wymeldowanie", "data wyjazdu", "wyjazd", "check out", "departure"],
   status: ["status"],
+  guest: ["imie i nazwisko goscia", "imiona i nazwiska gosci", "imiona gosci", "gosc", "goscie", "guest name s", "guest names", "guest name", "guest"],
+  booker: ["zarezerwowane przez", "rezerwujacy", "booked by", "booker"],
   // "Unit type" names the room; "Rooms" in some exports is only a count.
   room: ["typ jednostki", "rodzaj jednostki", "typ pokoju", "rodzaj pokoju", "unit type", "room type", "pokoj", "pokoje", "rooms", "room"],
 } as const;
@@ -57,13 +62,21 @@ export function parseBookingExport(raw: string): ParseResult {
     const checkOut = parseDate(get("checkOut"));
     const number = get("number").replace(/\s+/g, "");
     const room = get("room");
+    const guestName = cleanGuestName(get("guest") || get("booker"));
     if (!checkIn || !checkOut || checkOut <= checkIn || !number || !room) {
       invalid++;
       continue;
     }
-    rows.push({ number, room, checkIn, checkOut, cancelled: /cancel|anul|odwo/i.test(get("status")) });
+    rows.push({ number, room, checkIn, checkOut, cancelled: /cancel|anul|odwo/i.test(get("status")), guestName });
   }
   return { ok: true, rows, invalid };
+}
+
+/** A name, not an email, phone or number; at most 200 characters. */
+function cleanGuestName(value: string): string | null {
+  const name = value.replace(/\s+/g, " ").trim().slice(0, 200);
+  if (!name || !/\p{Letter}/u.test(name) || /@/.test(name) || /\d{5,}/.test(name)) return null;
+  return name;
 }
 
 function findColumns(header: string[]): Partial<Record<Column, number>> | null {

@@ -6,7 +6,7 @@ export type GuestStay = {
   startDate: DateKey;
   endDate: DateKey;
   guestName: string;
-  source: "manual" | "email";
+  source: "manual" | "email" | "import";
 };
 
 type Stay = { propertyId: string; startDate: DateKey; endDate: DateKey };

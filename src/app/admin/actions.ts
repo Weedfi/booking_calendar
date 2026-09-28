@@ -215,20 +215,45 @@ export async function importHistory(_prev: ActionState, form: FormData): Promise
     // Re-importing the same file updates the same rows (stable external UIDs).
     const { error } = await supabase.from("reservations").upsert(plan.records, { onConflict: "channel_id,external_uid" });
     if (error) return failure("Nie udało się zapisać rezerwacji. Spróbuj ponownie.");
-    refresh();
   }
 
+  // Guest names, past and future. Priority: manual > import > email, so a
+  // name typed by hand is kept; earlier imported or emailed names are replaced.
+  let guestsSaved = 0;
+  let guestsKeptManual = 0;
+  if (plan.guests.length > 0) {
+    const { data: manual, error: readError } = await supabase
+      .from("guest_stays")
+      .select("property_id, start_date, end_date")
+      .eq("source", "manual")
+      .in("property_id", [...new Set(plan.guests.map((g) => g.property_id))]);
+    if (readError) return failure("Nie udało się wczytać gości. Spróbuj ponownie.");
+    const keep = new Set(manual.map((m) => `${m.property_id}|${m.start_date}|${m.end_date}`));
+    const rows = plan.guests
+      .filter((g) => !keep.has(`${g.property_id}|${g.start_date}|${g.end_date}`))
+      .map((g) => ({ ...g, source: "import" as const }));
+    if (rows.length > 0) {
+      const { error } = await supabase.from("guest_stays").upsert(rows, { onConflict: "property_id,start_date,end_date" });
+      if (error) return failure("Nie udało się zapisać gości. Spróbuj ponownie.");
+    }
+    guestsSaved = rows.length;
+    guestsKeptManual = plan.guests.length - rows.length;
+  }
+  if (plan.records.length > 0 || guestsSaved > 0) refresh();
+
   const notes = [
-    plan.skipped.notFinished && `niezakończone: ${plan.skipped.notFinished} (przyjdą z kalendarza Booking.com)`,
+    plan.skipped.notFinished &&
+      `trwające i przyszłe: ${plan.skipped.notFinished} (terminy przychodzą z kalendarza Booking.com)`,
+    guestsKeptManual && `imiona wpisane ręcznie zostawione bez zmian: ${guestsKeptManual}`,
     plan.skipped.cancelled && `anulowane: ${plan.skipped.cancelled}`,
     parsed.invalid && `nieczytelne wiersze: ${parsed.invalid}`,
     plan.skipped.unknownRooms.length > 0 &&
       `nierozpoznane pokoje: ${plan.skipped.unknownRooms.join(", ")} (wpisz ich nazwę w polu „Nazwa pokoju w Booking.com”)`,
     plan.skipped.noChannel.length > 0 && `mieszkania bez kanału: ${plan.skipped.noChannel.join(", ")} (najpierw dodaj kanał Booking.com)`,
   ].filter(Boolean);
-  const summary = `Zaimportowane zakończone pobyty: ${plan.records.length}.${notes.length ? ` Pominięte: ${notes.join("; ")}.` : ""}`;
+  const summary = `Zaimportowane zakończone pobyty: ${plan.records.length}. Imiona gości: ${guestsSaved}.${notes.length ? ` Pozostałe: ${notes.join("; ")}.` : ""}`;
 
-  return plan.records.length === 0 && (plan.skipped.unknownRooms.length > 0 || plan.skipped.noChannel.length > 0)
+  return plan.records.length === 0 && guestsSaved === 0 && (plan.skipped.unknownRooms.length > 0 || plan.skipped.noChannel.length > 0)
     ? failure(summary)
     : success(summary);
 }
