@@ -1,5 +1,6 @@
 import { hasBearerSecret } from "@/lib/secrets";
 import type { EmailTriggerInfo } from "@/lib/sync/store";
+import { extractGuest, type EmailGuest } from "./guest";
 import { matchProperty, type MatchableProperty } from "./match";
 import { isBookingSender, parsePayload } from "./parse";
 
@@ -24,15 +25,18 @@ export type EmailTriggerDeps = {
   sync: (propertyId: string | null, email: EmailTriggerInfo) => Promise<SyncSummary>;
   /** Runs work after the response is sent (Next.js `after`). */
   runLater: (task: () => Promise<void>) => void;
+  /** Stores the guest's name for the stay; must never overwrite a name entered by hand. */
+  saveGuest?: (propertyId: string, guest: EmailGuest) => Promise<void>;
   sleep: (ms: number) => Promise<void>;
 };
 
 export type EmailTriggerResponse = { status: number; body: Record<string, unknown> };
 
 /**
- * Handles one forwarded notification email. The email only tells us *that*
- * something changed; the iCal feed stays the single source of truth, and the
- * email content is neither stored nor logged.
+ * Handles one forwarded notification email. The email tells us *that*
+ * something changed; the iCal feed stays the single source of truth for
+ * dates. The only thing kept from the email is the guest's name for the stay
+ * (a product decision); the email itself is neither stored nor logged.
  */
 export async function handleEmailTrigger(
   headers: Headers,
@@ -51,10 +55,16 @@ export async function handleEmailTrigger(
   const { propertyId, matchedBy } = matchProperty(email.subject, email.text, await deps.listProperties());
   const info: EmailTriggerInfo = { receivedAt: email.receivedAt, matchedBy };
 
+  // The guest's name is stored even when the sync is debounced: a second email
+  // may carry new dates. Only the name and dates are kept, never the email.
+  const guest = propertyId && deps.saveGuest ? extractGuest(email.subject, email.text) : null;
+  if (propertyId && guest) await deps.saveGuest!(propertyId, guest);
+  const guestSaved = Boolean(propertyId && guest);
+
   const last = await deps.lastEmailSyncAt(propertyId);
   if (last && now.getTime() - last.getTime() < DEBOUNCE_MS) {
     // A sync for this change just ran, and its follow-up sync is still to come.
-    return { status: 202, body: { debounced: true, propertyId, matchedBy } };
+    return { status: 202, body: { debounced: true, propertyId, matchedBy, guestSaved } };
   }
 
   const summary = await deps.sync(propertyId, info);
@@ -64,5 +74,5 @@ export async function handleEmailTrigger(
     await deps.sync(propertyId, info);
   });
 
-  return { status: 200, body: { propertyId, matchedBy, followUpInSeconds: FOLLOW_UP_DELAY_MS / 1000, ...summary } };
+  return { status: 200, body: { propertyId, matchedBy, guestSaved, followUpInSeconds: FOLLOW_UP_DELAY_MS / 1000, ...summary } };
 }

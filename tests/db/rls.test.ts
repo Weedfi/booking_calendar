@@ -201,3 +201,47 @@ describe("anonymous visitor", () => {
     }
   });
 });
+
+describe("guest names", () => {
+  beforeAll(async () => {
+    const { error } = await service.from("guest_stays").insert([
+      { property_id: ids.propA, start_date: "2030-01-10", end_date: "2030-01-13", guest_name: "Guest Of A", source: "email" },
+      { property_id: ids.propB, start_date: "2030-01-10", end_date: "2030-01-13", guest_name: "Guest Of B", source: "email" },
+    ]);
+    if (error) throw error;
+  });
+
+  it("an owner sees the guests of their own apartments only", async () => {
+    const { data, error } = await asOwnerA.from("guest_stays").select("guest_name");
+    expect(error).toBeNull();
+    expect(data?.map((g) => g.guest_name)).toEqual(["Guest Of A"]);
+  });
+
+  it("an owner cannot add or change guest names", async () => {
+    const insert = await asOwnerA
+      .from("guest_stays")
+      .insert({ property_id: ids.propA, start_date: "2030-02-01", end_date: "2030-02-02", guest_name: "Forged", source: "manual" });
+    expect(insert.error).not.toBeNull();
+
+    await asOwnerA.from("guest_stays").update({ guest_name: "Changed" }).eq("property_id", ids.propA);
+    const { data } = await service.from("guest_stays").select("guest_name").eq("property_id", ids.propA).single();
+    expect(data?.guest_name).toBe("Guest Of A");
+  });
+
+  it("the admin can set a name by hand", async () => {
+    const { error } = await asAdmin
+      .from("guest_stays")
+      .upsert(
+        { property_id: ids.propB, start_date: "2030-01-10", end_date: "2030-01-13", guest_name: "Set By Admin", source: "manual" },
+        { onConflict: "property_id,start_date,end_date" },
+      );
+    expect(error).toBeNull();
+    const { data } = await service.from("guest_stays").select("guest_name, source").eq("property_id", ids.propB).single();
+    expect(data).toEqual({ guest_name: "Set By Admin", source: "manual" });
+  });
+
+  it("an anonymous visitor sees nothing", async () => {
+    const { data } = await anonClient().from("guest_stays").select("guest_name");
+    expect(data ?? []).toEqual([]);
+  });
+});

@@ -3,6 +3,7 @@ import type { Database } from "@/lib/database.types";
 import { closedUntil, openNights, splitClosures } from "@/lib/calendar/closures";
 import type { ChannelSource } from "@/lib/calendar/tape-chart";
 import { addDays, isDateKey, monthRange, type DateKey } from "@/lib/dates";
+import { withGuests } from "@/lib/guests";
 import { monthGrid, monthGridWindow, type GridDay } from "./month-grid";
 
 export type OwnerProperty = { id: string; name: string; address: string | null; color: string };
@@ -12,6 +13,8 @@ export type OwnerStay = {
   source: ChannelSource;
   startDate: DateKey;
   endDate: DateKey;
+  /** Guest names within this stay, if known. */
+  guests?: string[];
 };
 
 export type OwnerParams = { propertyId: string | null; month: DateKey };
@@ -84,11 +87,31 @@ export async function loadOwnerView(
   if (inMonth.error) throw inMonth.error;
   if (upcoming.error) throw upcoming.error;
 
+  // Guest names (RLS: only for the owner's own apartments).
+  const loaded = [...inMonth.data, ...upcoming.data];
+  const guestRows = loaded.length
+    ? await supabase
+        .from("guest_stays")
+        .select("property_id, start_date, end_date, guest_name, source")
+        .eq("property_id", property.id)
+        .gte("start_date", loaded.map((r) => r.start_date).sort()[0])
+        .lte("end_date", loaded.map((r) => r.end_date).sort().at(-1)!)
+    : { data: [], error: null };
+  if (guestRows.error) throw guestRows.error;
+  const guests = guestRows.data.map((g) => ({
+    propertyId: g.property_id,
+    startDate: g.start_date,
+    endDate: g.end_date,
+    guestName: g.guest_name,
+    source: g.source,
+  }));
+  const attach = (rows: typeof loaded) => withGuests(rows.map(toStay).map((s) => ({ ...s, propertyId: property.id })), guests);
+
   return buildOwnerView(
     properties,
     property,
-    inMonth.data.map(toStay),
-    upcoming.data.map(toStay),
+    attach(inMonth.data),
+    attach(upcoming.data),
     params.month,
     today,
   );

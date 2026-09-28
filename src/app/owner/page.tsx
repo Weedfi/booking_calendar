@@ -79,7 +79,10 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
 
         {view.current && (
           <p className="rounded-xl bg-indigo-50 p-3 text-sm text-indigo-950">
-            <span className="font-semibold">Gość jest teraz na miejscu</span> · wymeldowanie {formatDate(view.current.endDate)}
+            <span className="font-semibold">
+              {view.current.guests?.length ? `Gość: ${view.current.guests.join(", ")}` : "Gość jest teraz na miejscu"}
+            </span>{" "}
+            · wymeldowanie {formatDate(view.current.endDate)}
           </p>
         )}
 
@@ -127,7 +130,7 @@ function UpcomingStay({ stay, today }: { stay: OwnerStay; today: DateKey }) {
           {formatDate(stay.startDate)} → {formatDate(stay.endDate)}
         </p>
         <p className="text-sm text-slate-500">
-          {nightsLabel(nights)} · {CHANNELS[stay.source].label}
+          {[stay.guests?.join(", "), nightsLabel(nights), CHANNELS[stay.source].label].filter(Boolean).join(" · ")}
         </p>
       </div>
       <span className="shrink-0 text-xs text-slate-500">

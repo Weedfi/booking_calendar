@@ -11,6 +11,7 @@ import {
   type PropertyLayout,
 } from "@/lib/calendar/tape-chart";
 import { addDays, daysBetween, eachDay, maxDate, minDate, monthRange, type DateKey } from "@/lib/dates";
+import { withGuests, type GuestStay } from "@/lib/guests";
 
 export type PropertyRecord = {
   id: string;
@@ -34,6 +35,8 @@ export type DashboardData = {
   owners: { id: string; name: string }[];
   channels: ChannelStatus[];
   reservations: CalendarReservation[];
+  /** Guest names for stays in the window; optional so tests can leave it out. */
+  guests?: GuestStay[];
 };
 
 export type StayWithProperty = { reservation: CalendarReservation; property: PropertyRecord };
@@ -86,7 +89,7 @@ export function buildDashboard(
 
   // Closed-for-sale blocks are not stays: kept apart from occupancy and turnovers.
   const { stays: reservations, closures } = splitClosures(
-    data.reservations.filter((r) => visibleIds.has(r.propertyId) && bySource(r)),
+    withGuests(data.reservations, data.guests ?? []).filter((r) => visibleIds.has(r.propertyId) && bySource(r)),
   );
   const channels = data.channels.filter((c) => visibleIds.has(c.propertyId) && bySource(c));
   const propertyById = new Map(visible.map((p) => [p.id, p]));
@@ -173,6 +176,17 @@ export async function loadDashboardData(
     if (result.error) throw result.error;
   }
 
+  // Guest names inside the loaded reservations (which may start before the window).
+  const loaded = reservations.data!;
+  const guests = loaded.length
+    ? await supabase
+        .from("guest_stays")
+        .select("property_id, start_date, end_date, guest_name, source")
+        .gte("start_date", minDate(...loaded.map((r) => r.start_date)))
+        .lte("end_date", maxDate(...loaded.map((r) => r.end_date)))
+    : { data: [], error: null };
+  if (guests.error) throw guests.error;
+
   return {
     properties: properties.data!.map((p) => ({
       id: p.id,
@@ -196,6 +210,13 @@ export async function loadDashboardData(
       startDate: r.start_date,
       endDate: r.end_date,
       summary: r.summary,
+    })),
+    guests: guests.data!.map((g) => ({
+      propertyId: g.property_id,
+      startDate: g.start_date,
+      endDate: g.end_date,
+      guestName: g.guest_name,
+      source: g.source,
     })),
   };
 }

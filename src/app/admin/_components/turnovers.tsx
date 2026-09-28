@@ -67,7 +67,10 @@ function TurnoverList({ title, stays, sameDay }: { title: string; stays: StayWit
           {stays.map(({ reservation, property }) => (
             <li key={reservation.id} className="flex items-center gap-2 text-sm">
               <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: property.color }} aria-hidden />
-              <span className="truncate">{property.name}</span>
+              <span className="truncate">
+                {property.name}
+                {reservation.guests?.length ? <span className="text-slate-500"> · {reservation.guests.join(", ")}</span> : null}
+              </span>
               {sameDay?.has(property.id) && (
                 <span className="shrink-0 rounded bg-amber-100 px-1.5 text-xs text-amber-900" title="Nowy gość przyjeżdża tego samego dnia">
                   Zmiana gości

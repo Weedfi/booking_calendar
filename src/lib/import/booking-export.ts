@@ -1,4 +1,7 @@
-import { isDateKey, type DateKey } from "@/lib/dates";
+import type { DateKey } from "@/lib/dates";
+import { parseDate } from "@/lib/parse-date";
+
+export { parseDate };
 
 /**
  * History import from the reservation list you can download in the
@@ -138,43 +141,6 @@ function parseHtmlTable(html: string): string[][] {
   return [...html.matchAll(/<tr[\s\S]*?<\/tr>/gi)].map((tr) =>
     [...tr[0].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)].map((td) => decode(td[1])),
   );
-}
-
-// ---------------------------------------------------------------------------
-// Dates
-// ---------------------------------------------------------------------------
-
-const MONTHS: Record<string, number> = {
-  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
-  sty: 1, lut: 2, kwi: 4, maj: 5, cze: 6, lip: 7, sie: 8, wrz: 9, paz: 10, lis: 11, gru: 12,
-};
-
-/** Accepts 2026-09-19, 19.09.2026, 19/09/2026, 19 Sep 2026, Sep 19, 2026, 19 wrz 2026. */
-export function parseDate(value: string): DateKey | null {
-  // Drop a time part, lowercase, strip diacritics and commas; keep - / . for numeric dates.
-  const v = value
-    .split(/[ T]\d{1,2}:\d{2}/)[0]
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/,/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const build = (y: number, m: number, d: number) => {
-    const key = `${y}-${pad(m)}-${pad(d)}`;
-    return isDateKey(key) ? key : null;
-  };
-
-  let m = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/.exec(v);
-  if (m) return build(+m[1], +m[2], +m[3]);
-  m = /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/.exec(v);
-  if (m) return build(+m[3], +m[2], +m[1]);
-  m = /^(\d{1,2}) ([a-z]{3})[a-z]* (\d{4})$/.exec(v);
-  if (m && MONTHS[m[2]]) return build(+m[3], MONTHS[m[2]], +m[1]);
-  m = /^([a-z]{3})[a-z]* (\d{1,2}) (\d{4})$/.exec(v);
-  if (m && MONTHS[m[1]]) return build(+m[3], MONTHS[m[1]], +m[2]);
-  return null;
 }
 
 /** Lowercase, no diacritics, punctuation to single spaces. */

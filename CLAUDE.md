@@ -13,6 +13,8 @@ Web app for a short-term rental manager who runs ~15 apartments for different ow
 - Each property on Booking.com has an **iCal export URL** (.ics). Later, Airbnb iCal URLs may be added (a property can have multiple channels).
 - iCal gives only: UID, DTSTART, DTEND (checkout day, exclusive), SUMMARY (e.g. "CLOSED - Not available"). No guest names, no prices.
 - Bookings and manual blocks look the same in the feed. Treat both as "occupied".
+- Booking.com merges consecutive unavailable days into one event; a property closed for sale shows up as one block to the end of the feed. Blocks of 60+ nights are displayed as "closed", not as stays (src/lib/calendar/closures.ts).
+- The feed only covers today onwards. Older stays can be imported from the extranet reservation export (only room, dates, status, number; no guest data from the file).
 - iCal URLs are secrets. Never send them to the client, never expose them to owners.
 
 ## Stack
@@ -33,6 +35,7 @@ Web app for a short-term rental manager who runs ~15 apartments for different ow
 - Admin: full access to everything.
 - Owner: SELECT on `properties` where owner_id = auth.uid(); SELECT on `reservations` joined through their properties.
 - Owners have NO access to `channels` (hides iCal URLs).
+- Guest names (`guest_stays`): admin reads and writes; owners read the names for their own properties only. Product decision (2026-09-28): owners may see guest names; names are kept until the admin deletes them (no automatic deletion).
 - Write a test proving an owner cannot read another owner's data.
 
 ## Sync logic
@@ -63,10 +66,10 @@ Flow:
 5. Supabase Realtime pushes the change to the admin UI (toast + live tape chart update).
 
 Rules:
-- The email is ONLY a trigger. Never store reservation data parsed from emails; the iCal feed is the single source of truth.
+- The email triggers a sync; the iCal feed stays the single source of truth for dates. The only data kept from an email is the guest's name for the stay (`guest_stays`, source 'email'), and a name entered by hand is never overwritten.
 - Debounce: if the same property was synced in the last ~20 s, skip or queue one follow-up sync (Booking may send several emails at once).
 - Booking may update the iCal feed with a delay: after an email trigger, re-sync that property once more after ~2 min.
-- Don't store email bodies (guest data / GDPR). Log only: received_at, matched property, sync result.
+- Don't store email bodies. Log only: received_at, matched property, sync result.
 - Parsing must be resilient: if Booking changes the email format, we fall back to "sync all" and cron still works.
 - Table `sync_events` (id, trigger: 'email' | 'cron' | 'manual', property_id nullable, started_at, finished_at, ok, error) for debugging and for the admin "last synced" indicator.
 - Tests: property extraction from sample subjects (fake fixtures), secret check, debounce, fallback to sync-all.

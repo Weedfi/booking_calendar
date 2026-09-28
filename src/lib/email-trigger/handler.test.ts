@@ -96,7 +96,7 @@ describe("handleEmailTrigger", () => {
     const { deps, syncs, later } = setup(new Date(NOW.getTime() - DEBOUNCE_MS + 1000));
     const result = await handleEmailTrigger(auth, fixture("new-booking-with-id"), deps);
 
-    expect(result).toEqual({ status: 202, body: { debounced: true, propertyId: "wawel", matchedBy: "booking_id" } });
+    expect(result).toEqual({ status: 202, body: { debounced: true, propertyId: "wawel", matchedBy: "booking_id", guestSaved: false } });
     expect(syncs).toEqual([]);
     expect(later).toEqual([]);
   });
@@ -113,5 +113,37 @@ describe("handleEmailTrigger", () => {
     const json = JSON.stringify(result.body);
     expect(json).not.toContain("Jane Example");
     expect(json).not.toContain("EUR");
+  });
+});
+
+describe("handleEmailTrigger guest names", () => {
+  it("stores the guest's name and dates for the matched property", async () => {
+    const { deps } = setup();
+    const saved: unknown[] = [];
+    const result = await handleEmailTrigger(auth, fixture("new-booking-with-id"), {
+      ...deps,
+      saveGuest: async (propertyId, guest) => {
+        saved.push({ propertyId, ...guest });
+      },
+    });
+    expect(saved).toEqual([{ propertyId: "wawel", guestName: "Jane Example", checkIn: "2026-10-09", checkOut: "2026-10-12" }]);
+    expect(result.body).toMatchObject({ guestSaved: true });
+    // The name itself is never echoed back.
+    expect(JSON.stringify(result.body)).not.toContain("Jane");
+  });
+
+  it("stores the name even when the sync is debounced", async () => {
+    const { deps } = setup(new Date(NOW.getTime() - 5_000));
+    const saved: unknown[] = [];
+    await handleEmailTrigger(auth, fixture("new-booking-with-id"), { ...deps, saveGuest: async (_p, g) => void saved.push(g) });
+    expect(saved).toHaveLength(1);
+  });
+
+  it("does not store a name when the property is unknown", async () => {
+    const { deps } = setup();
+    const saved: unknown[] = [];
+    const body = { ...fixture("unknown-format"), text: "Gość: Anna Nowak\nZameldowanie: 2026-10-01\nWymeldowanie: 2026-10-03" };
+    await handleEmailTrigger(auth, body, { ...deps, saveGuest: async (_p, g) => void saved.push(g) });
+    expect(saved).toEqual([]);
   });
 });

@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { parseChannel, parseInvite, parseProperty, type FieldErrors } from "@/lib/admin/forms";
 import { requireRole } from "@/lib/auth";
-import { todayKey } from "@/lib/dates";
+import { isDateKey, todayKey } from "@/lib/dates";
 import { parseBookingExport } from "@/lib/import/booking-export";
 import { planImport } from "@/lib/import/plan";
 import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from "@/lib/demo";
@@ -246,4 +246,36 @@ function decodeUpload(bytes: Uint8Array): string | null {
     // Polish Excel on Windows often saves CSV in Windows-1250.
     return new TextDecoder("windows-1250").decode(bytes);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Guest names
+// ---------------------------------------------------------------------------
+
+/**
+ * Sets the guest name for a stay (apartment + dates), or removes it when the
+ * name is empty. A name entered here always wins over one read from emails.
+ */
+export async function saveGuestName(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
+
+  const propertyId = String(form.get("property_id") ?? "");
+  const startDate = String(form.get("start_date") ?? "");
+  const endDate = String(form.get("end_date") ?? "");
+  const guestName = String(form.get("guest_name") ?? "").trim().replace(/\s+/g, " ");
+  if (!UUID.test(propertyId) || !isDateKey(startDate) || !isDateKey(endDate) || endDate <= startDate) {
+    return failure("Nieznana rezerwacja.");
+  }
+  if (guestName.length > 200) return invalid({ guest_name: "Imię i nazwisko może mieć najwyżej 200 znaków." }, form);
+
+  const supabase = await createClient();
+  const key = { property_id: propertyId, start_date: startDate, end_date: endDate };
+  const { error } = guestName
+    ? await supabase.from("guest_stays").upsert({ ...key, guest_name: guestName, source: "manual" }, { onConflict: "property_id,start_date,end_date" })
+    : await supabase.from("guest_stays").delete().match(key);
+  if (error) return failure("Nie udało się zapisać gościa. Spróbuj ponownie.");
+
+  refresh();
+  return success(guestName ? "Zapisano gościa." : "Usunięto gościa.");
 }

@@ -10,6 +10,8 @@ export type CalendarReservation = {
   /** Checkout day, exclusive. */
   endDate: DateKey;
   summary: string | null;
+  /** Guest names within this stay (table guest_stays), if known. */
+  guests?: string[];
 };
 
 /**

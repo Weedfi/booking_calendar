@@ -22,6 +22,7 @@ Built with Next.js 16, Supabase (Postgres, Auth, Row Level Security, Realtime) a
 - Filters for owner, property, channel and range (kept in the URL), plus week and month navigation.
 - Monthly occupancy and a "synced X min ago" / sync-error marker per property.
 - Live updates: new bookings and cancellations appear as toasts and on the chart without a reload.
+- Guest names on the chart, in the cleaning plan and in the owner view: read from Booking.com emails, or entered by clicking a stay.
 - Import past stays from the Booking.com reservation export (the iCal feed only covers today onwards). Only rooms and dates are kept; guest names and prices are dropped.
 - Manage properties and iCal channels, and invite owners by email. Several apartments can belong to one Booking.com property, each with its own room type and iCal feed.
 - Phones get a list of upcoming check-ins and check-outs instead of the chart.
@@ -82,7 +83,7 @@ flowchart LR
 - **iCal URLs are secrets.** They are never selected for a page. The admin sees a masked `ical.booking.com/…a1b2`, and sync errors never contain the URL.
 - **Invite-only.** Sign-in never creates accounts, and a new user's role is always `owner`, whatever the signup metadata says.
 - **Protected endpoints.** Cron and webhook endpoints use bearer secrets with a constant-time comparison, and reject everything when no secret is configured. Every server action checks the admin role before touching data.
-- **The email is only a trigger.** Only its arrival time and how the property was matched are logged; the content is never stored (GDPR). Look-alike sender domains are rejected.
+- **Guest names are the only personal data.** They come from Booking.com notification emails or are entered by the admin, live in their own table (`guest_stays`) with RLS (admin writes; owners read their own apartments only), and a hand-entered name is never overwritten by an email. Email bodies are never stored; look-alike sender domains are rejected.
 
 ## Tech stack
 

@@ -50,6 +50,17 @@ export async function POST(request: NextRequest) {
     },
     sync: async (propertyId, email) => summarize(await syncNow("email", propertyId ? [propertyId] : undefined, email)),
     runLater: (task) => after(task),
+    saveGuest: async (propertyId, guest) => {
+      const key = { property_id: propertyId, start_date: guest.checkIn, end_date: guest.checkOut };
+      // A name entered by hand always wins over one read from an email.
+      const { data: existing, error: readError } = await db.from("guest_stays").select("source").match(key).maybeSingle();
+      if (readError) throw readError;
+      if (existing?.source === "manual") return;
+      const { error } = await db
+        .from("guest_stays")
+        .upsert({ ...key, guest_name: guest.guestName, source: "email" }, { onConflict: "property_id,start_date,end_date" });
+      if (error) throw error;
+    },
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   });
 

@@ -75,6 +75,47 @@ export type Database = {
           },
         ]
       }
+      guest_stays: {
+        Row: {
+          created_at: string
+          end_date: string
+          guest_name: string
+          id: string
+          property_id: string
+          source: Database["public"]["Enums"]["guest_name_source"]
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          guest_name: string
+          id?: string
+          property_id: string
+          source: Database["public"]["Enums"]["guest_name_source"]
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          guest_name?: string
+          id?: string
+          property_id?: string
+          source?: Database["public"]["Enums"]["guest_name_source"]
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_stays_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -246,6 +287,7 @@ export type Database = {
     }
     Enums: {
       channel_source: "booking" | "airbnb" | "other"
+      guest_name_source: "manual" | "email"
       property_match: "booking_id" | "name" | "none"
       reservation_status: "active" | "cancelled"
       sync_trigger: "email" | "cron" | "manual"
@@ -381,6 +423,7 @@ export const Constants = {
   public: {
     Enums: {
       channel_source: ["booking", "airbnb", "other"],
+      guest_name_source: ["manual", "email"],
       property_match: ["booking_id", "name", "none"],
       reservation_status: ["active", "cancelled"],
       sync_trigger: ["email", "cron", "manual"],

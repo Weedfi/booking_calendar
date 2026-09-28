@@ -5,6 +5,7 @@ import { CHANNELS } from "@/lib/calendar/channels";
 import type { Bar } from "@/lib/calendar/tape-chart";
 import { formatDate, type DateKey } from "@/lib/dates";
 import { nightsLabel } from "@/lib/i18n";
+import { ReservationBar as ReservationBarButton } from "./reservation-bar";
 
 type Props = {
   rows: DashboardRow[];
@@ -120,15 +121,19 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
   const { reservation: r } = bar;
   const channel = CHANNELS[r.source];
   const n = nights(r);
-  const description = `${propertyName}: ${channel.label}, ${formatDate(r.startDate)} → ${formatDate(r.endDate)}, ${nightsLabel(n)}${
-    r.summary ? `, ${r.summary}` : ""
-  }`;
+  const guests = r.guests ?? [];
+  const dates = `${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
+  const description = [propertyName, channel.label, dates, nightsLabel(n), guests.length ? `gość: ${guests.join(", ")}` : r.summary]
+    .filter(Boolean)
+    .join(", ");
+  const wide = bar.endHalf - bar.startHalf >= 2;
 
   return (
-    <div
-      role="img"
-      aria-label={description}
-      title={description}
+    <ReservationBarButton
+      label={wide ? [guests.join(", "), `${n} n.`].filter(Boolean).join(" · ") : ""}
+      description={description}
+      guestName={guests.length === 1 ? guests[0] : ""}
+      stay={{ propertyId: r.propertyId, startDate: r.startDate, endDate: r.endDate, title: `${propertyName} · ${dates}` }}
       className={`relative z-10 my-1 flex items-center overflow-hidden px-2 text-xs font-medium whitespace-nowrap text-white shadow-sm ${
         bar.clippedStart ? "rounded-l-none" : "rounded-l-full"
       } ${bar.clippedEnd ? "rounded-r-none" : "rounded-r-full"}`}
@@ -137,9 +142,7 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
         gridRow: bar.lane + 1,
         backgroundColor: channel.color,
       }}
-    >
-      {bar.endHalf - bar.startHalf >= 2 && `${n} n.`}
-    </div>
+    />
   );
 }
 
