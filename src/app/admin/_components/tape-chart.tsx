@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { DashboardRow, SyncSummary } from "@/lib/admin/dashboard";
 import { nights } from "@/lib/admin/dashboard";
+import { BLOCKED_PATTERN } from "@/lib/calendar/closures";
 import { CHANNELS } from "@/lib/calendar/channels";
 import type { Bar } from "@/lib/calendar/tape-chart";
 import { formatDate, type DateKey } from "@/lib/dates";
@@ -92,7 +93,7 @@ function PropertyLabel({ row }: { row: DashboardRow }) {
         <span className="truncate text-sm font-medium">{property.name}</span>
         <span
           className="ml-auto text-xs tabular-nums text-slate-500"
-          title={row.occupancy === null ? "Cały miesiąc zamknięty na rezerwacje" : "Obłożenie otwartych dni w miesiącu"}
+          title={row.occupancy === null ? "Cały miesiąc zablokowany" : "Obłożenie otwartych dni w miesiącu"}
         >
           {row.occupancy === null ? "—" : `${Math.round(row.occupancy * 100)}%`}
         </span>
@@ -143,23 +144,23 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
   );
 }
 
-/** A period closed for sale: a hatched band behind the stays, not a booking. */
+/** A blocked period: a striped band behind the stays, never a booking. */
 function ClosureBand({ bar, laneCount }: { bar: Bar; laneCount: number }) {
   const { reservation: r } = bar;
-  const description = `Zamknięte na rezerwacje: ${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
+  const description = `Zablokowane: ${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
   return (
     <div
       role="img"
       aria-label={description}
       title={description}
-      className="z-[5] my-1 flex items-center overflow-hidden px-2 text-xs font-medium whitespace-nowrap text-slate-600"
+      className="z-[5] my-1 flex items-center overflow-hidden rounded-sm border border-dashed border-slate-500 px-2 text-xs font-semibold whitespace-nowrap text-slate-800"
       style={{
         gridColumn: `${2 + bar.startHalf} / ${2 + bar.endHalf}`,
         gridRow: `1 / span ${laneCount}`,
-        background: "repeating-linear-gradient(135deg, #e2e8f0 0 6px, #f1f5f9 6px 12px)",
+        background: BLOCKED_PATTERN,
       }}
     >
-      Zamknięte
+      <span className="rounded bg-white/85 px-1">🔒 Zablokowane</span>
     </div>
   );
 }

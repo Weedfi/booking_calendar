@@ -39,7 +39,9 @@ const data: DashboardData = {
     stay(LOFT, "2031-01-12", "2031-01-15"), // checks out today
     stay(LOFT, "2031-01-15", "2031-01-18"), // checks in today
     stay(STUDIO, "2031-01-16", "2031-01-20", "airbnb"), // checks in tomorrow
-    stay(CHALET, "2031-01-01", "2031-02-01"), // whole month
+    // Whole month as two stays: one 31-night block would count as blocked.
+    stay(CHALET, "2031-01-01", "2031-01-05"),
+    stay(CHALET, "2031-01-05", "2031-02-01"),
   ],
 };
 

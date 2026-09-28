@@ -11,12 +11,12 @@ describe("isClosure", () => {
 
   it("keeps normal and long stays as stays", () => {
     expect(isClosure(stay("2026-10-01", "2026-10-04"))).toBe(false);
-    expect(isClosure(stay("2026-10-01", "2026-11-15"))).toBe(false); // 45 nights, a long stay
+    expect(isClosure(stay("2026-10-01", "2026-10-29"))).toBe(false); // 28 nights, a long stay
   });
 
-  it("starts treating blocks as closures at 60 nights", () => {
-    expect(isClosure(stay("2026-10-01", "2026-11-29"))).toBe(false); // 59
-    expect(isClosure(stay("2026-10-01", "2026-11-30"))).toBe(true); // 60
+  it("treats blocks of more than 30 nights as closures", () => {
+    expect(isClosure(stay("2026-10-01", "2026-10-31"))).toBe(false); // 30
+    expect(isClosure(stay("2026-10-01", "2026-11-01"))).toBe(true); // 31
   });
 });
 
