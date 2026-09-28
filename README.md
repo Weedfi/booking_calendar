@@ -22,6 +22,7 @@ Built with Next.js 16, Supabase (Postgres, Auth, Row Level Security, Realtime) a
 - Filters for owner, property, channel and range (kept in the URL), plus week and month navigation.
 - Monthly occupancy and a "synced X min ago" / sync-error marker per property.
 - Live updates: new bookings and cancellations appear as toasts and on the chart without a reload.
+- Import past stays from the Booking.com reservation export (the iCal feed only covers today onwards). Only rooms and dates are kept; guest names and prices are dropped.
 - Manage properties and iCal channels, and invite owners by email. Several apartments can belong to one Booking.com property, each with its own room type and iCal feed.
 - Phones get a list of upcoming check-ins and check-outs instead of the chart.
 

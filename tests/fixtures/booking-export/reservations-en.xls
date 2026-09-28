@@ -1,0 +1,5 @@
+<html><body><table>
+<tr><th>Book number</th><th>Booked by</th><th>Guest name(s)</th><th>Check-in</th><th>Check-out</th><th>Status</th><th>Rooms</th><th>Unit type</th></tr>
+<tr><td>5500000101</td><td>Test Booker</td><td>Test Guest</td><td>Sep 19, 2026</td><td>Sep 21, 2026</td><td>ok</td><td>1</td><td>Pokój 2-osobowy z łazienką nr.1</td></tr>
+<tr><td>5500000102</td><td>Other Booker</td><td>Other &amp; Guest</td><td>2026-09-22</td><td>2026-09-23</td><td>cancelled_by_guest</td><td>1</td><td>Pokój 2-osobowy z łazienką nr.1</td></tr>
+</table></body></html>

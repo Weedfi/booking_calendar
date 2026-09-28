@@ -4,6 +4,9 @@ import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { parseChannel, parseInvite, parseProperty, type FieldErrors } from "@/lib/admin/forms";
 import { requireRole } from "@/lib/auth";
+import { todayKey } from "@/lib/dates";
+import { parseBookingExport } from "@/lib/import/booking-export";
+import { planImport } from "@/lib/import/plan";
 import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -164,4 +167,83 @@ export async function inviteOwner(_prev: ActionState, form: FormData): Promise<A
 
   refresh();
   return success(`Zaproszenie wysłane na ${parsed.value.email}.`);
+}
+
+// ---------------------------------------------------------------------------
+// History import
+// ---------------------------------------------------------------------------
+
+// Below the 4 MB server action limit in next.config.ts, leaving room for form overhead.
+const MAX_IMPORT_BYTES = 3.5 * 1024 * 1024;
+
+export async function importHistory(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
+
+  const file = form.get("file");
+  if (!(file instanceof File) || file.size === 0) return failure("Wybierz plik z listą rezerwacji.");
+  if (file.size > MAX_IMPORT_BYTES) return failure("Plik jest za duży (limit 3,5 MB). Wybierz krótszy zakres dat.");
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const text = decodeUpload(bytes);
+  if (text === null) {
+    return failure("To jest plik Excel. Otwórz go w Excelu, wybierz Plik → Zapisz jako → CSV UTF-8 i zaimportuj ten plik.");
+  }
+
+  const parsed = parseBookingExport(text);
+  if (!parsed.ok) return failure(parsed.error);
+
+  const supabase = await createClient();
+  const [properties, channels] = await Promise.all([
+    supabase.from("properties").select("id, name, booking_room_name"),
+    supabase.from("channels").select("id, property_id, source"),
+  ]);
+  if (properties.error || channels.error) return failure("Nie udało się wczytać mieszkań. Spróbuj ponownie.");
+
+  const plan = planImport(
+    parsed.rows,
+    properties.data.map((p) => ({
+      id: p.id,
+      name: p.name,
+      bookingRoomName: p.booking_room_name,
+      channels: channels.data.filter((c) => c.property_id === p.id).map((c) => ({ id: c.id, source: c.source })),
+    })),
+    todayKey(),
+  );
+
+  if (plan.records.length > 0) {
+    // Re-importing the same file updates the same rows (stable external UIDs).
+    const { error } = await supabase.from("reservations").upsert(plan.records, { onConflict: "channel_id,external_uid" });
+    if (error) return failure("Nie udało się zapisać rezerwacji. Spróbuj ponownie.");
+    refresh();
+  }
+
+  const notes = [
+    plan.skipped.notFinished && `niezakończone: ${plan.skipped.notFinished} (przyjdą z kalendarza Booking.com)`,
+    plan.skipped.cancelled && `anulowane: ${plan.skipped.cancelled}`,
+    parsed.invalid && `nieczytelne wiersze: ${parsed.invalid}`,
+    plan.skipped.unknownRooms.length > 0 &&
+      `nierozpoznane pokoje: ${plan.skipped.unknownRooms.join(", ")} (wpisz ich nazwę w polu „Nazwa pokoju w Booking.com”)`,
+    plan.skipped.noChannel.length > 0 && `mieszkania bez kanału: ${plan.skipped.noChannel.join(", ")} (najpierw dodaj kanał Booking.com)`,
+  ].filter(Boolean);
+  const summary = `Zaimportowane zakończone pobyty: ${plan.records.length}.${notes.length ? ` Pominięte: ${notes.join("; ")}.` : ""}`;
+
+  return plan.records.length === 0 && (plan.skipped.unknownRooms.length > 0 || plan.skipped.noChannel.length > 0)
+    ? failure(summary)
+    : success(summary);
+}
+
+/** UTF-8, UTF-16 (BOM) or Windows-1250 text; null for a binary Excel file. */
+function decodeUpload(bytes: Uint8Array): string | null {
+  const isXls = bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0;
+  const isXlsx = bytes[0] === 0x50 && bytes[1] === 0x4b; // zip container
+  if (isXls || isXlsx) return null;
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder("utf-16le").decode(bytes);
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder("utf-16be").decode(bytes);
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    // Polish Excel on Windows often saves CSV in Windows-1250.
+    return new TextDecoder("windows-1250").decode(bytes);
+  }
 }

@@ -145,3 +145,30 @@ describe("sync against Supabase", () => {
     expect(event?.finished_at).not.toBeNull();
   });
 });
+
+describe("imported history", () => {
+  it("survives a sync, although the feed no longer lists past stays", async () => {
+    const { error } = await db.from("reservations").insert({
+      property_id: propertyId,
+      channel_id: bookingChannelId,
+      source: "booking",
+      external_uid: `booking-export-${runId}`,
+      start_date: "2030-12-01",
+      end_date: "2030-12-04",
+      summary: "Import z Booking.com",
+    });
+    if (error) throw error;
+
+    // NOW is 2031-01-05, so the imported stay is in the past.
+    feeds[urls.booking] = fixture("booking.ics");
+    await sync();
+
+    const { data } = await db
+      .from("reservations")
+      .select("status")
+      .eq("channel_id", bookingChannelId)
+      .eq("external_uid", `booking-export-${runId}`)
+      .single();
+    expect(data?.status).toBe("active");
+  });
+});
