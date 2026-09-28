@@ -9,7 +9,6 @@ import { deleteChannel, deleteProperty } from "../actions";
 import { DeleteButton } from "../_components/delete-button";
 import { RefreshButton } from "../_components/refresh-button";
 import { ChannelForm } from "./_components/channel-form";
-import { ImportForm } from "./_components/import-form";
 import { PropertyForm } from "./_components/property-form";
 
 export const metadata: Metadata = { title: "Mieszkania" };
@@ -38,15 +37,6 @@ export default async function PropertiesPage() {
           <div className="mt-4">
             <PropertyForm owners={owners} />
           </div>
-        </details>
-
-        <details className="rounded-xl border border-slate-200 bg-white p-4">
-          <summary className="cursor-pointer font-medium">Importuj imiona gości i historię z Booking.com</summary>
-          <p className="mt-2 mb-3 text-sm text-slate-600">
-            Kalendarz iCal z Booking.com nie zawiera imion gości ani dni sprzed dzisiaj. Lista rezerwacji pobrana z extranetu
-            uzupełnia jedno i drugie. Wrzucaj ją co kilka dni, żeby nowe rezerwacje miały imiona.
-          </p>
-          <ImportForm />
         </details>
 
         {properties.map((p) => (
