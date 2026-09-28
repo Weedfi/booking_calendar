@@ -126,3 +126,43 @@ describe("planImport", () => {
     expect(noChannel.skipped.noChannel).toEqual(["Marynistyczny Apartament 4-osobowy"]);
   });
 });
+
+describe("the real Booking.com export format", () => {
+  // Same header as a real Polish export; the rows are made up.
+  const result = parseBookingExport(fixture("reservations-pl-real-header.csv"));
+  const rows = result.ok ? result.rows : [];
+
+  it("reads the room from 'Rodzaj opcji zakwaterowania', not the room count", () => {
+    expect(rows.map((r) => r.room)).toEqual([
+      "Apartament Czerwony nr.2",
+      "Pokój dwuosobowy z łazienką nr.1",
+      "Apartament Czerwony nr.2",
+    ]);
+  });
+
+  it("reads the guest from 'Imię i nazwisko gości(a)'", () => {
+    expect(rows.map((r) => r.guestName)).toEqual(["Testowy Jan", "Nowak Anna", "Anulujący Ktoś"]);
+    expect(rows[2].cancelled).toBe(true);
+  });
+
+  it("never assigns a stay to an apartment by a fragment like a room number", () => {
+    const apartments: ImportableProperty[] = [
+      { id: "p-nr1", name: "Pokój 2-osobowy z łazienką nr.1", bookingRoomName: null, channels: [{ id: "c1", source: "booking" }] },
+      { id: "p-nr2", name: "Pokój dwuosobowy z łazienką nr.2", bookingRoomName: null, channels: [{ id: "c2", source: "booking" }] },
+    ];
+    const plan = planImport(rows, apartments, "2026-09-28");
+    // Neither room name in the file is an apartment in the app: nothing may be guessed.
+    expect(plan.records).toEqual([]);
+    expect(plan.guests).toEqual([]);
+    expect(plan.skipped.unknownRooms).toEqual(["Apartament Czerwony nr.2", "Pokój dwuosobowy z łazienką nr.1"]);
+  });
+
+  it("matches once the Booking.com room name is set on the apartment", () => {
+    const apartments: ImportableProperty[] = [
+      { id: "p-red", name: "Czerwony", bookingRoomName: "Apartament Czerwony nr.2", channels: [{ id: "c-red", source: "booking" }] },
+    ];
+    const plan = planImport(rows, apartments, "2026-09-28");
+    expect(plan.records.map((r) => [r.property_id, r.start_date])).toEqual([["p-red", "2025-09-13"]]);
+    expect(plan.guests.map((g) => g.guest_name)).toEqual(["Testowy Jan"]);
+  });
+});

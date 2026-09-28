@@ -91,7 +91,11 @@ export function planImport(rows: ExportRow[], properties: ImportableProperty[], 
   return plan;
 }
 
-/** Exact name match first (room name or apartment name), then a unique containment. */
+/**
+ * Exact name match first (room name or apartment name), then a unique
+ * whole-word containment between names of at least 4 characters. A short
+ * value such as "1" must never match "Pokój nr.1".
+ */
 function findProperty(room: string, properties: ImportableProperty[]): ImportableProperty | null {
   const target = normalize(room);
   const names = (p: ImportableProperty) => [p.bookingRoomName, p.name].filter((n): n is string => Boolean(n)).map(normalize);
@@ -100,6 +104,10 @@ function findProperty(room: string, properties: ImportableProperty[]): Importabl
   if (exact.length === 1) return exact[0];
   if (exact.length > 1) return null;
 
-  const partial = properties.filter((p) => names(p).some((n) => n.length >= 4 && (target.includes(n) || n.includes(target))));
+  if (target.length < 4) return null;
+  const contains = (a: string, b: string) => ` ${a} `.includes(` ${b} `);
+  const partial = properties.filter((p) =>
+    names(p).some((n) => n.length >= 4 && (contains(target, n) || contains(n, target))),
+  );
   return partial.length === 1 ? partial[0] : null;
 }

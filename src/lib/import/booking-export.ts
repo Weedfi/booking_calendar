@@ -31,10 +31,11 @@ const COLUMNS = {
   checkIn: ["zameldowanie", "data przyjazdu", "przyjazd", "check in", "arrival"],
   checkOut: ["wymeldowanie", "data wyjazdu", "wyjazd", "check out", "departure"],
   status: ["status"],
-  guest: ["imie i nazwisko goscia", "imiona i nazwiska gosci", "imiona gosci", "gosc", "goscie", "guest name s", "guest names", "guest name", "guest"],
-  booker: ["zarezerwowane przez", "rezerwujacy", "booked by", "booker"],
-  // "Unit type" names the room; "Rooms" in some exports is only a count.
-  room: ["typ jednostki", "rodzaj jednostki", "typ pokoju", "rodzaj pokoju", "unit type", "room type", "pokoj", "pokoje", "rooms", "room"],
+  // The real Polish export says "Imię i nazwisko gości(a)".
+  guest: ["imie i nazwisko gosci a", "imie i nazwisko gosci", "imie i nazwisko goscia", "imiona i nazwiska gosci", "imiona gosci", "gosc", "goscie", "guest name s", "guest names", "guest name", "guest"],
+  booker: ["zarezerwowal a", "zarezerwowal", "zarezerwowane przez", "rezerwujacy", "booked by", "booker"],
+  // The room's name. "Pokoje" / "Rooms" are only a count of rooms, never use them.
+  room: ["rodzaj opcji zakwaterowania", "rodzaj zakwaterowania", "typ jednostki", "rodzaj jednostki", "typ pokoju", "rodzaj pokoju", "unit type", "room type", "accommodation type", "pokoj", "room"],
 } as const;
 
 type Column = keyof typeof COLUMNS;
@@ -63,7 +64,8 @@ export function parseBookingExport(raw: string): ParseResult {
     const number = get("number").replace(/\s+/g, "");
     const room = get("room");
     const guestName = cleanGuestName(get("guest") || get("booker"));
-    if (!checkIn || !checkOut || checkOut <= checkIn || !number || !room) {
+    // A room "name" that is just a number is a count or an ID, not a name.
+    if (!checkIn || !checkOut || checkOut <= checkIn || !number || !room || /^\d+$/.test(room)) {
       invalid++;
       continue;
     }

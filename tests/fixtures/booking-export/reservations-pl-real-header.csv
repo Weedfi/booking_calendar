@@ -1,0 +1,4 @@
+Numer rezerwacji;Zarezerwował(a);Imię i nazwisko gości(a);Zameldowanie;Wymeldowanie;Zarezerwowano dnia;Status;Pokoje;Osoby;Dorośli;Dzieci;Wiek dzieci:;Cena;Prowizja (%);Kwota prowizji;Status płatności;Metoda płatności (dostawca płatności);Uwagi;Grupa rezerwujących;Booker country;Powód podróży;Urządzenie;Rodzaj opcji zakwaterowania;Czas trwania (noce);Data odwołania;Adres;Numer telefonu
+5500000201;Testowy, Jan;Testowy Jan;2025-09-13;2025-09-14;2025-09-13 15:59:18;ok;1;2;;;;300 PLN;12;36 PLN;Zapłacono online;;;;pl;Wypoczynek;Smartfon;Apartament Czerwony nr.2;1;;Ulica Przykładowa 1;
+5500000202;Nowak, Anna;Nowak Anna;2025-10-03;2025-10-05;2025-09-20 10:00:00;ok;1;2;;;;500 PLN;12;60 PLN;Zapłacono online;;;;pl;Wypoczynek;Komputer;Pokój dwuosobowy z łazienką nr.1;2;;;
+5500000203;Anulujący, Ktoś;Anulujący Ktoś;2025-10-10;2025-10-12;2025-09-25 09:00:00;cancelled_by_guest;1;2;;;;0 PLN;;;;;;;pl;;;Apartament Czerwony nr.2;2;2025-10-01;;
