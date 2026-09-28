@@ -42,8 +42,8 @@ flowchart LR
   end
 
   BK -- "notification email" --> MB[Manager's mailbox]
-  MB -- "auto-forward" --> CF["Cloudflare Email Routing<br/>+ Email Worker"]
-  CF -- "POST /api/sync-trigger<br/>(bearer secret)" --> APP
+  MB -- "auto-forward" --> RS["Resend inbound<br/>(or Cloudflare Worker)"]
+  RS -- "signed webhook<br/>/api/inbound/resend" --> APP
 
   CRON["Supabase pg_cron<br/>every 5 min"] -- "GET /api/cron/sync<br/>(bearer secret)" --> APP
   ADM[Admin: Refresh now] --> APP
@@ -146,7 +146,7 @@ The seed data points at `demo://` feeds, which the app generates itself when `DE
    - `CRON_SECRET`, `SYNC_TRIGGER_SECRET` (long random strings)
    - For the public demo only: `DEMO_MODE=true` and `DEMO_FEEDS=true`
 3. **Scheduled sync:** in Supabase → Integrations → Vault, add the secrets `app_url` (your Vercel URL) and `cron_secret` (same value as `CRON_SECRET`). The `sync-calendars` pg_cron job ([migration](supabase/migrations/20260926090637_scheduled_sync.sql)) then calls the sync every 5 minutes. Optionally, also add the GitHub repository variable `APP_URL` and secret `CRON_SECRET` for the backup [workflow](.github/workflows/sync-cron.yml).
-4. **Email trigger (optional):** follow [workers/email-trigger/README.md](workers/email-trigger/README.md).
+4. **Email trigger (optional):** easiest is **Resend inbound** (no DNS changes): forward Booking.com notifications to your `…@<id>.resend.app` address, add a Resend webhook for `email.received` pointing to `/api/inbound/resend`, and set `RESEND_API_KEY` (full access) and `RESEND_WEBHOOK_SECRET` in Vercel. A Cloudflare Email Worker alternative is in [workers/email-trigger](workers/email-trigger/README.md).
 
 ### Public demo
 

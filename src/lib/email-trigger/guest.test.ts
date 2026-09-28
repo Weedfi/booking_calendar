@@ -49,3 +49,20 @@ describe("parseDate with email-style dates", () => {
     expect(parseDate(input)).toBe(expected);
   });
 });
+
+describe("extractGuest from an HTML email laid out as a table", () => {
+  it("pairs labels and values from separate table cells", async () => {
+    const { htmlToText } = await import("./html");
+    const html = `<html><head><style>td{color:red}</style></head><body>
+      <h1>Nowa rezerwacja!</h1>
+      <table>
+        <tr><td>Imię i nazwisko gościa:</td><td>Jan&nbsp;Kowalski</td></tr>
+        <tr><td>Zameldowanie</td><td>pt., 16 paź 2026</td></tr>
+        <tr><td>Wymeldowanie</td><td>pn., 19 paź 2026</td></tr>
+        <tr><td>Pokój</td><td>Marynistyczny Apartament 4-osobowy</td></tr>
+      </table></body></html>`;
+    const text = htmlToText(html);
+    expect(text).not.toContain("color:red");
+    expect(extractGuest("Nowa rezerwacja", text)).toEqual({ guestName: "Jan Kowalski", checkIn: "2026-10-16", checkOut: "2026-10-19" });
+  });
+});

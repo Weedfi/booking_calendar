@@ -44,7 +44,14 @@ export async function handleEmailTrigger(
   deps: EmailTriggerDeps,
 ): Promise<EmailTriggerResponse> {
   if (!hasBearerSecret(headers, deps.secret)) return { status: 401, body: { error: "Unauthorized" } };
+  return processEmail(body, deps);
+}
 
+/**
+ * Everything after authentication; also used by the Resend inbound webhook,
+ * which authenticates with its own signature.
+ */
+export async function processEmail(body: unknown, deps: EmailTriggerDeps): Promise<EmailTriggerResponse> {
   const now = deps.now();
   const email = parsePayload(body, now);
   if (!email) return { status: 400, body: { error: "Invalid payload" } };

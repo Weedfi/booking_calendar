@@ -27,11 +27,16 @@ const CHECK_OUT_LABELS = ["wymeldowanie", "data wyjazdu", "wyjazd", "check-out",
 export function extractGuest(subject: string, text: string): EmailGuest | null {
   const lines = `${subject}\n${text}`.split(/\r?\n/).map((l) => l.trim());
 
+  // "Label: value" on one line, or (HTML tables) "Label" with the value on the next line.
   const valueAfter = (labels: string[]) => {
     for (const label of labels) {
-      for (const line of lines) {
-        const m = new RegExp(`^${escape(label)}\\s*[:：-]\\s*(.+)$`, "i").exec(line);
-        if (m) return m[1].trim();
+      for (let i = 0; i < lines.length; i++) {
+        const sameLine = new RegExp(`^${escape(label)}\\s*[:：-]\\s*(.+)$`, "i").exec(lines[i]);
+        if (sameLine) return sameLine[1].trim();
+        if (new RegExp(`^${escape(label)}\\s*[:：]?$`, "i").test(lines[i])) {
+          const next = lines.slice(i + 1).find(Boolean);
+          if (next) return next;
+        }
       }
     }
     return null;
