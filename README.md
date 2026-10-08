@@ -139,7 +139,7 @@ The seed data points at `demo://` feeds, which the app generates itself when `DE
 
 1. **Supabase:** create a project, then `npx supabase link` and `npx supabase db push`. Add `--include-seed` only for a demo with fake data.
    - Auth → URL configuration: set the Site URL to your Vercel URL and add `https://<your-app>/**` to the redirect URLs.
-   - Auth → Email templates: copy [magic_link.html](supabase/templates/magic_link.html) and [invite.html](supabase/templates/invite.html). The links must go to `/auth/confirm?token_hash=…`.
+   - Auth → Emails: copy [magic_link.html](supabase/templates/magic_link.html) (Magic link) and [invite.html](supabase/templates/invite.html) (Invite user), with the subjects from `supabase/config.toml`. The links must go to `/auth/confirm?token_hash=…`. Under Security notifications, turn on "Password changed" with [password_changed_notification.html](supabase/templates/password_changed_notification.html).
    - Auth → Sign In / Providers: turn off "Allow new users to sign up" (invites still work) and keep the Email provider on (magic link and password).
    - The built-in email service only sends a few emails per hour, so set up custom SMTP (for example Resend's free tier) for real use.
 2. **Vercel:** import the repository and set these environment variables:
