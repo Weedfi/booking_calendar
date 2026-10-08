@@ -4,42 +4,60 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light only" />
-    <title>Logowanie do Kalendarza rezerwacji</title>
+    <title>Zaloguj się do kalendarza</title>
   </head>
-  <body style="margin: 0; padding: 0; background-color: #f1f5f9">
-    <div style="display: none; max-height: 0; overflow: hidden">
-      Twój link do logowania. Działa jednorazowo przez godzinę.
-    </div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9">
+  <body style="margin: 0; padding: 0; background-color: #f4f1ea">
+    <div style="display: none; max-height: 0; overflow: hidden">Twój jednorazowy link do logowania. Działa przez godzinę.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f1ea">
       <tr>
         <td align="center" style="padding: 32px 16px">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 520px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px">
             <tr>
-              <td style="padding: 0 4px 16px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #0f172a">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 5px; background-color: #4f46e5; margin-right: 8px"></span>Kalendarz rezerwacji
-              </td>
-            </tr>
-            <tr>
-              <td style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; font-family: Arial, Helvetica, sans-serif; color: #334155">
-                <h1 style="margin: 0 0 12px; font-size: 22px; line-height: 1.3; color: #0f172a">Zaloguj się</h1>
-                <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6">
-                  Kliknij przycisk poniżej, aby zalogować się do kalendarza rezerwacji. Link działa jednorazowo przez godzinę.
-                </p>
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <td style="background-color: #ffffff; border: 1px solid #e7e1d5; border-radius: 16px; padding: 32px; font-family: Arial, Helvetica, sans-serif; color: #334155">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
-                    <td style="border-radius: 10px; background-color: #0f172a">
+                    <td align="center" style="padding: 0 0 8px">
+                      <img src="{{ .SiteURL }}/email/orzechowa-przystan.png" width="180" alt="Orzechowa Przystań" style="display: block; width: 180px; max-width: 100%; height: auto; border: 0" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 0 0 24px; border-bottom: 1px solid #eee8dc; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #7a6a58">
+                      Kalendarz rezerwacji
+                    </td>
+                  </tr>
+                </table>
+                <h1 style="margin: 24px 0 16px; font-size: 22px; line-height: 1.3; color: #1f2d22">Zaloguj się do kalendarza</h1>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6">Dzień dobry,</p>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6">otrzymaliśmy prośbę o zalogowanie się do kalendarza rezerwacji Orzechowej Przystani na adres <strong>{{ .Email }}</strong>. Kliknij przycisk poniżej, a od razu przejdziesz do swojego konta. Nie musisz niczego wpisywać.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 24px">
+                  <tr>
+                    <td style="border-radius: 10px; background-color: #2f5233">
                       <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email" style="display: inline-block; padding: 14px 28px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px">Zaloguj się</a>
                     </td>
                   </tr>
                 </table>
-                <p style="margin: 24px 0 0; font-size: 13px; line-height: 1.6; color: #64748b">
-                  Wolisz logować się hasłem? Po zalogowaniu ustaw je w zakładce <strong>Konto</strong>.
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #475569">Link jest jednorazowy i ważny przez godzinę. Jeśli wygaśnie, poproś o nowy na stronie logowania.</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 20px">
+                  <tr>
+                    <td style="background-color: #f3f6f2; border-radius: 12px; padding: 16px 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.6; color: #334155">
+                      <strong>Co znajdziesz w kalendarzu?</strong><br />Zajęte i wolne terminy, najbliższe przyjazdy i wyjazdy gości oraz obłożenie w każdym miesiącu. Dane z Booking.com odświeżają się same, kilka minut po każdej zmianie.
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #475569">Wolisz logować się hasłem? Po zalogowaniu ustaw je w zakładce <strong>Konto</strong>. Link na email zawsze działa jako zapasowy sposób logowania, także gdy zapomnisz hasła.</p>
+                <p style="margin: 0 0 20px; font-size: 12px; line-height: 1.6; color: #64748b">
+                  Przycisk nie działa? Skopiuj ten adres do przeglądarki:<br />
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email" style="color: #2f5233; word-break: break-all">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email</a>
+                </p>
+                <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6">
+                  Pozdrawiamy serdecznie,<br />
+                  <strong style="color: #3b2a1a">Orzechowa Przystań</strong>
                 </p>
               </td>
             </tr>
             <tr>
-              <td style="padding: 16px 4px 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.6; color: #94a3b8">
-                Jeśli to nie Ty prosisz o link, zignoruj tę wiadomość. Nikt nie zaloguje się bez dostępu do Twojej skrzynki.
+              <td style="padding: 16px 8px 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.6; color: #8a8173; text-align: center">
+                Jeśli to nie Ty prosisz o link, po prostu zignoruj tę wiadomość. Bez dostępu do Twojej skrzynki nikt się nie zaloguje.
               </td>
             </tr>
           </table>

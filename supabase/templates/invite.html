@@ -4,47 +4,65 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light only" />
-    <title>Zaproszenie do Kalendarza rezerwacji</title>
+    <title>Zaproszenie do kalendarza rezerwacji</title>
   </head>
-  <body style="margin: 0; padding: 0; background-color: #f1f5f9">
-    <div style="display: none; max-height: 0; overflow: hidden">
-      Zobacz rezerwacje swoich mieszkań: zajęte terminy, najbliższe pobyty i obłożenie.
-    </div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9">
+  <body style="margin: 0; padding: 0; background-color: #f4f1ea">
+    <div style="display: none; max-height: 0; overflow: hidden">Sprawdzaj rezerwacje swoich mieszkań w jednym miejscu, także na telefonie.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f1ea">
       <tr>
         <td align="center" style="padding: 32px 16px">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 520px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px">
             <tr>
-              <td style="padding: 0 4px 16px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #0f172a">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 5px; background-color: #4f46e5; margin-right: 8px"></span>Kalendarz rezerwacji
-              </td>
-            </tr>
-            <tr>
-              <td style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; font-family: Arial, Helvetica, sans-serif; color: #334155">
-                <h1 style="margin: 0 0 12px; font-size: 22px; line-height: 1.3; color: #0f172a">Zaproszenie do kalendarza rezerwacji</h1>
-                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6">
-                  Zarządca Twoich mieszkań udostępnił Ci podgląd ich kalendarza. Po zalogowaniu zobaczysz:
-                </p>
-                <ul style="margin: 0 0 24px; padding-left: 20px; font-size: 15px; line-height: 1.8">
-                  <li>zajęte i wolne terminy,</li>
-                  <li>najbliższe pobyty,</li>
+              <td style="background-color: #ffffff; border: 1px solid #e7e1d5; border-radius: 16px; padding: 32px; font-family: Arial, Helvetica, sans-serif; color: #334155">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" style="padding: 0 0 8px">
+                      <img src="{{ .SiteURL }}/email/orzechowa-przystan.png" width="180" alt="Orzechowa Przystań" style="display: block; width: 180px; max-width: 100%; height: auto; border: 0" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 0 0 24px; border-bottom: 1px solid #eee8dc; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #7a6a58">
+                      Kalendarz rezerwacji
+                    </td>
+                  </tr>
+                </table>
+                <h1 style="margin: 24px 0 16px; font-size: 22px; line-height: 1.3; color: #1f2d22">Zaproszenie do kalendarza rezerwacji</h1>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6">Dzień dobry,</p>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6">z przyjemnością zapraszamy do kalendarza rezerwacji Orzechowej Przystani. To prosty podgląd, w którym w każdej chwili, także na telefonie, sprawdzisz, co dzieje się w Twoich mieszkaniach:</p>
+                <ul style="margin: 0 0 20px; padding-left: 20px; font-size: 15px; line-height: 1.8">
+                  <li>kiedy mieszkanie jest zajęte, a kiedy wolne,</li>
+                  <li>najbliższe przyjazdy i wyjazdy gości wraz z liczbą nocy,</li>
                   <li>obłożenie w każdym miesiącu.</li>
                 </ul>
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6">Kalendarz aktualizuje się sam na podstawie rezerwacji z Booking.com, więc zawsze widzisz bieżący stan. To wyłącznie podgląd: nic w nim przypadkiem nie zmienisz i nie wpłynie on na Twoje rezerwacje.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 24px">
                   <tr>
-                    <td style="border-radius: 10px; background-color: #0f172a">
+                    <td style="border-radius: 10px; background-color: #2f5233">
                       <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" style="display: inline-block; padding: 14px 28px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px">Przyjmij zaproszenie</a>
                     </td>
                   </tr>
                 </table>
-                <p style="margin: 24px 0 0; font-size: 13px; line-height: 1.6; color: #64748b">
-                  Później logujesz się na <a href="{{ .SiteURL }}" style="color: #4f46e5">{{ .SiteURL }}</a> tym samym adresem email: linkiem wysłanym na skrzynkę albo hasłem, które możesz ustawić w zakładce <strong>Konto</strong>.
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 20px">
+                  <tr>
+                    <td style="background-color: #f3f6f2; border-radius: 12px; padding: 16px 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.6; color: #334155">
+                      <strong>Jak logować się później?</strong><br />Wejdź na <a href="{{ .SiteURL }}" style="color: #2f5233">{{ .SiteURL }}</a> i podaj swój adres email. Możesz zalogować się linkiem wysłanym na skrzynkę albo hasłem, które ustawisz w zakładce <strong>Konto</strong>. Warto dodać stronę do zakładek lub do ekranu głównego telefonu.
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #475569">Jeśli masz pytania albo coś nie działa, skontaktuj się z nami. Chętnie pomożemy.</p>
+                <p style="margin: 0 0 20px; font-size: 12px; line-height: 1.6; color: #64748b">
+                  Przycisk nie działa? Skopiuj ten adres do przeglądarki:<br />
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" style="color: #2f5233; word-break: break-all">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite</a>
+                </p>
+                <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6">
+                  Pozdrawiamy serdecznie,<br />
+                  <strong style="color: #3b2a1a">Orzechowa Przystań</strong>
                 </p>
               </td>
             </tr>
             <tr>
-              <td style="padding: 16px 4px 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.6; color: #94a3b8">
-                Link w zaproszeniu działa tylko przez ograniczony czas. Jeśli wygaśnie, poproś zarządcę o nowe zaproszenie.
+              <td style="padding: 16px 8px 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.6; color: #8a8173; text-align: center">
+                Link w zaproszeniu działa przez ograniczony czas. Jeśli wygaśnie, poproś nas o nowe zaproszenie.
               </td>
             </tr>
           </table>
