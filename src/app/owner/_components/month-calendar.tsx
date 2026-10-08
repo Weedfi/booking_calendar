@@ -43,7 +43,7 @@ export function MonthCalendar({ weeks, month, prevHref, nextHref }: Props) {
           <li
             key={day.date}
             aria-label={`${formatDate(day.date)}: ${describe(day)}`}
-            className={`relative flex aspect-square items-start justify-start rounded-lg border border-slate-100 p-1 text-sm tabular-nums ${
+            className={`relative flex aspect-square items-start md:aspect-auto md:h-20 justify-start rounded-lg border border-slate-100 p-1 text-sm tabular-nums ${
               day.inMonth ? "" : "opacity-40"
             } ${day.isToday ? "ring-2 ring-amber-500" : ""}`}
             style={{ background: fill(day) }}

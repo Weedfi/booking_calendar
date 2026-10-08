@@ -10,7 +10,16 @@ const ADMIN_NAV: { section: Section; href: string; label: string }[] = [
   { section: "owners", href: "/admin/owners", label: "Właściciele" },
 ];
 
-export function AppHeader({ user, active }: { user: CurrentUser; active?: Section }) {
+export function AppHeader({
+  user,
+  active,
+  width = "max-w-screen-2xl",
+}: {
+  user: CurrentUser;
+  active?: Section;
+  /** Max-width class, so the header lines up with the page content. */
+  width?: string;
+}) {
   return (
     <header className="border-b border-slate-200 bg-white">
       {isDemoMode() && (
@@ -18,7 +27,7 @@ export function AppHeader({ user, active }: { user: CurrentUser; active?: Sectio
           Publiczne demo z fałszywymi danymi. Zmiany są wyłączone; synchronizacja i aktualizacje na żywo działają.
         </p>
       )}
-      <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+      <div className={`mx-auto flex ${width} flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3`}>
         <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             Kalendarz rezerwacji
