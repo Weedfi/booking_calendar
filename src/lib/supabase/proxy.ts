@@ -4,7 +4,7 @@ import type { Database } from "@/lib/database.types";
 import { sameOriginUrl } from "@/lib/redirect";
 
 /** Paths that require a signed-in user. */
-const PROTECTED_PREFIXES = ["/admin", "/owner"];
+const PROTECTED_PREFIXES = ["/admin", "/owner", "/account"];
 
 /**
  * Refreshes the auth session cookie on every request and sends signed-out

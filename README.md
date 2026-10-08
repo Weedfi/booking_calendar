@@ -28,7 +28,7 @@ Built with Next.js 16, Supabase (Postgres, Auth, Row Level Security, Realtime) a
 - Phones get a list of upcoming check-ins and check-outs instead of the chart.
 
 **Owner**
-- Magic-link sign-in, no password.
+- Magic-link sign-in; each user can also set their own password on the Account page.
 - Mobile-first month calendar with half-day check-in and checkout days, occupancy, booked nights and upcoming stays.
 - Only ever sees their own properties. The database enforces this, not the UI.
 
@@ -87,7 +87,7 @@ flowchart LR
 
 ## Tech stack
 
-Next.js 16 (App Router, Server Actions, `after()`), TypeScript, Tailwind CSS 4 · Supabase Postgres, Auth (magic link), RLS, Realtime · `node-ical` · Vitest · GitHub Actions · Cloudflare Email Workers.
+Next.js 16 (App Router, Server Actions, `after()`), TypeScript, Tailwind CSS 4 · Supabase Postgres, Auth (magic link + password), RLS, Realtime · `node-ical` · Vitest · GitHub Actions · Cloudflare Email Workers.
 
 ## Project structure
 
@@ -140,6 +140,7 @@ The seed data points at `demo://` feeds, which the app generates itself when `DE
 1. **Supabase:** create a project, then `npx supabase link` and `npx supabase db push`. Add `--include-seed` only for a demo with fake data.
    - Auth → URL configuration: set the Site URL to your Vercel URL and add `https://<your-app>/**` to the redirect URLs.
    - Auth → Email templates: copy [magic_link.html](supabase/templates/magic_link.html) and [invite.html](supabase/templates/invite.html). The links must go to `/auth/confirm?token_hash=…`.
+   - Auth → Sign In / Providers: turn off "Allow new users to sign up" (invites still work) and keep the Email provider on (magic link and password).
    - The built-in email service only sends a few emails per hour, so set up custom SMTP (for example Resend's free tier) for real use.
 2. **Vercel:** import the repository and set these environment variables:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`

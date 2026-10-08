@@ -35,6 +35,28 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   return { status: "sent" };
 }
 
+export async function signInWithPassword(_prev: LoginState, formData: FormData): Promise<LoginState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  if (!EMAIL.test(email) || password === "") {
+    return { status: "error", message: "Podaj email i hasło." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error?.status === 429) {
+    return { status: "error", message: "Za dużo prób. Odczekaj chwilę i spróbuj ponownie." };
+  }
+  if (error) {
+    // Same message for an unknown email, a wrong password and an account
+    // without a password, so the form does not reveal who has an account.
+    return { status: "error", message: "Nieprawidłowy email lub hasło." };
+  }
+  // "/" routes the user to the admin or owner view based on their role.
+  redirect("/");
+}
+
 /**
  * Public demo only: one-click sign-in as a seeded demo account. The session
  * is created server side (no email), and only the fixed seed IDs are allowed.

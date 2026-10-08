@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { CurrentUser } from "@/lib/auth";
 import { isDemoMode } from "@/lib/demo";
 
-type Section = "calendar" | "properties" | "owners";
+type Section = "calendar" | "properties" | "owners" | "account";
 
 const ADMIN_NAV: { section: Section; href: string; label: string }[] = [
   { section: "calendar", href: "/admin", label: "Kalendarz" },
@@ -45,6 +45,13 @@ export function AppHeader({ user, active }: { user: CurrentUser; active?: Sectio
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="hidden text-slate-600 sm:inline">{user.fullName ?? user.email}</span>
+          <Link
+            href="/account"
+            aria-current={active === "account" ? "page" : undefined}
+            className={`rounded-md px-2 py-1 hover:bg-slate-100 ${active === "account" ? "bg-slate-100 font-medium text-slate-900" : "text-slate-700"}`}
+          >
+            Konto
+          </Link>
           <form action="/auth/signout" method="post">
             <button type="submit" className="rounded-md px-2 py-1 text-slate-700 hover:bg-slate-100">
               Wyloguj

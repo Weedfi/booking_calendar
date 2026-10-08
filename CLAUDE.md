@@ -19,7 +19,7 @@ Web app for a short-term rental manager who runs ~15 apartments for different ow
 
 ## Stack
 - Next.js (App Router) + TypeScript + Tailwind
-- Supabase: Postgres, Auth (magic link email login, no passwords), Row Level Security, Realtime
+- Supabase: Postgres, Auth (magic link email login, plus an optional password each user sets for themselves on /account; signups disabled, invite-only), Row Level Security, Realtime
 - Hosting: Vercel (free tier)
 - iCal parsing: `node-ical`
 - Tests: Vitest; CI: GitHub Actions
@@ -85,7 +85,7 @@ Rules:
 - Mobile: list of upcoming check-ins/outs instead of the tape chart.
 
 ## Owner UI
-- Magic link login.
+- Magic link login or own password.
 - List of own properties, calendar with occupied dates, upcoming stays, monthly occupancy %.
 - Mobile-first (owners will mostly use phones).
 
