@@ -13,7 +13,7 @@ export function ChannelForm({ propertyId }: { propertyId: string }) {
   const [state, action] = useActionState(addChannel, initialActionState);
 
   return (
-    <form action={action} className="grid gap-3 sm:grid-cols-[10rem_1fr_auto] sm:items-end">
+    <form action={action} className="grid gap-3 @md:grid-cols-[10rem_1fr_auto] @md:items-end">
       <input type="hidden" name="property_id" value={propertyId} />
       <Field label="Kanał" name="source" state={state}>
         <select key={state.values?.source} name="source" defaultValue={state.values?.source ?? "booking"} className={inputClass}>
@@ -39,7 +39,7 @@ export function ChannelForm({ propertyId }: { propertyId: string }) {
       <SubmitButton variant="secondary" pendingText="Dodawanie i synchronizacja…">
         Dodaj kanał
       </SubmitButton>
-      <div className="sm:col-span-3">
+      <div className="@md:col-span-3">
         <FormMessage state={state} />
       </div>
     </form>

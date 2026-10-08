@@ -26,7 +26,7 @@ export default async function PropertiesPage() {
   return (
     <>
       <AppHeader user={user} active="properties" />
-      <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4">
+      <main className="mx-auto flex w-full max-w-screen-2xl flex-col gap-4 p-4 lg:py-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-xl font-semibold">Mieszkania ({properties.length})</h1>
           <RefreshButton label="Synchronizuj wszystko" />
@@ -34,70 +34,81 @@ export default async function PropertiesPage() {
 
         <details className="rounded-xl border border-slate-200 bg-white p-4">
           <summary className="cursor-pointer font-medium">Dodaj mieszkanie</summary>
-          <div className="mt-4">
+          <div className="mt-4 max-w-3xl">
             <PropertyForm owners={owners} />
           </div>
         </details>
 
-        {properties.map((p) => (
-          <section key={p.id} aria-label={p.name} className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h2 className="flex items-center gap-2 font-semibold">
-                  <span className="size-3 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
-                  {p.name}
-                </h2>
-                <p className="text-sm text-slate-600">
-                  {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "Bez właściciela", p.booking_property_id &&
-                      `Obiekt Booking.com ${p.booking_property_id}${p.booking_room_name ? ` · pokój: ${p.booking_room_name}` : ""}`]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              </div>
-              <DeleteButton
-                action={deleteProperty}
-                id={p.id}
-                label="Usuń"
-                confirmText={`Usunąć ${p.name} razem ze wszystkimi kanałami i rezerwacjami? Tej operacji nie można cofnąć.`}
-              />
-            </div>
-
-            <details className="mt-3">
-              <summary className="cursor-pointer text-sm text-slate-700">Edytuj dane</summary>
-              <div className="mt-3">
-                <PropertyForm
-                  owners={owners}
-                  values={{
-                    id: p.id,
-                    name: p.name,
-                    address: p.address,
-                    owner_id: p.owner_id,
-                    color: p.color,
-                    booking_property_id: p.booking_property_id,
-                    booking_room_name: p.booking_room_name,
-                  }}
+        <div className="grid items-start gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+          {properties.map((p) => (
+            <section key={p.id} aria-label={p.name} className="@container rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="flex items-center gap-2 font-semibold">
+                    <span className="size-3 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
+                    {p.name}
+                  </h2>
+                  <p className="text-sm text-slate-600">
+                    {[p.address, p.owner_id ? ownerName.get(p.owner_id) : "Bez właściciela", p.booking_property_id &&
+                        `Obiekt Booking.com ${p.booking_property_id}${p.booking_room_name ? ` · pokój: ${p.booking_room_name}` : ""}`]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </div>
+                <DeleteButton
+                  action={deleteProperty}
+                  id={p.id}
+                  label="Usuń"
+                  confirmText={`Usunąć ${p.name} razem ze wszystkimi kanałami i rezerwacjami? Tej operacji nie można cofnąć.`}
                 />
               </div>
-            </details>
 
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-slate-700">Kanały</h3>
-                {p.channels.length > 0 && <RefreshButton propertyId={p.id} label="Synchronizuj to mieszkanie" />}
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm text-slate-700">Edytuj dane</summary>
+                <div className="mt-3">
+                  <PropertyForm
+                    owners={owners}
+                    values={{
+                      id: p.id,
+                      name: p.name,
+                      address: p.address,
+                      owner_id: p.owner_id,
+                      color: p.color,
+                      booking_property_id: p.booking_property_id,
+                      booking_room_name: p.booking_room_name,
+                    }}
+                  />
+                </div>
+              </details>
+
+              <div className="mt-4 border-t border-slate-100 pt-3">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-medium text-slate-700">Kanały</h3>
+                  {p.channels.length > 0 && <RefreshButton propertyId={p.id} label="Synchronizuj to mieszkanie" />}
+                </div>
+                {p.channels.length === 0 ? (
+                  <p className="mb-3 text-sm text-slate-500">Brak kanałów. Wklej link eksportu iCal z Booking.com lub Airbnb.</p>
+                ) : (
+                  <ul className="mb-3 flex flex-col divide-y divide-slate-100">
+                    {p.channels.map((c) => (
+                      <ChannelRow key={c.id} channel={c} now={now} />
+                    ))}
+                  </ul>
+                )}
+                {p.channels.length === 0 ? (
+                  <ChannelForm propertyId={p.id} />
+                ) : (
+                  <details>
+                    <summary className="cursor-pointer text-sm text-slate-700">Dodaj kanał</summary>
+                    <div className="mt-3">
+                      <ChannelForm propertyId={p.id} />
+                    </div>
+                  </details>
+                )}
               </div>
-              {p.channels.length === 0 ? (
-                <p className="mb-3 text-sm text-slate-500">Brak kanałów. Wklej link eksportu iCal z Booking.com lub Airbnb.</p>
-              ) : (
-                <ul className="mb-3 flex flex-col divide-y divide-slate-100">
-                  {p.channels.map((c) => (
-                    <ChannelRow key={c.id} channel={c} now={now} />
-                  ))}
-                </ul>
-              )}
-              <ChannelForm propertyId={p.id} />
-            </div>
-          </section>
-        ))}
+            </section>
+          ))}
+        </div>
       </main>
     </>
   );

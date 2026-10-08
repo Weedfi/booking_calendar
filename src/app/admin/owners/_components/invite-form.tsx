@@ -8,7 +8,7 @@ export function InviteForm() {
   const [state, action] = useActionState(inviteOwner, initialActionState);
 
   return (
-    <form action={action} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+    <form action={action} className="grid gap-3 @2xl:grid-cols-[1fr_1fr_auto] @2xl:items-end">
       <Field label="Imię i nazwisko" name="full_name" state={state}>
         <input
           name="full_name"
@@ -31,7 +31,7 @@ export function InviteForm() {
         />
       </Field>
       <SubmitButton pendingText="Wysyłanie…">Wyślij zaproszenie</SubmitButton>
-      <div className="sm:col-span-3">
+      <div className="@2xl:col-span-3">
         <FormMessage state={state} />
       </div>
     </form>
