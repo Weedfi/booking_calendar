@@ -1,4 +1,4 @@
-import { isClosure } from "@/lib/calendar/closures";
+import { CLOSURE_MIN_NIGHTS, isClosure } from "@/lib/calendar/closures";
 import { plural } from "@/lib/i18n";
 import { formatDate } from "@/lib/dates";
 
@@ -50,8 +50,8 @@ const LABELS: Record<Notice["kind"], string> = {
   new: "Nowa rezerwacja",
   cancelled: "Anulowano",
   updated: "Zmiana rezerwacji",
-  closed: "Zamknięto na rezerwacje",
-  reopened: "Otwarto na rezerwacje",
+  closed: `Nowa blokada ponad ${CLOSURE_MIN_NIGHTS - 1} nocy`,
+  reopened: "Zdjęto blokadę",
 };
 
 /** "Nowa rezerwacja: Old Town Loft, pt., 9 paź → pon., 12 paź" */

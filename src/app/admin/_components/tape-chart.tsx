@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { DashboardRow, SyncSummary } from "@/lib/admin/dashboard";
 import { nights } from "@/lib/admin/dashboard";
 import { CHANNELS } from "@/lib/calendar/channels";
+import { CLOSURE_LABEL } from "@/lib/calendar/closures";
 import type { Bar } from "@/lib/calendar/tape-chart";
 import { formatDate, type DateKey } from "@/lib/dates";
 import { nightsLabel } from "@/lib/i18n";
@@ -92,7 +93,7 @@ function PropertyLabel({ row }: { row: DashboardRow }) {
         <span className="truncate text-sm font-medium">{property.name}</span>
         <span
           className="ml-auto text-xs tabular-nums text-slate-500"
-          title={row.occupancy === null ? "Cały miesiąc zamknięty na rezerwacje" : "Obłożenie otwartych dni w miesiącu"}
+          title={row.occupancy === null ? "Cały miesiąc zablokowany" : "Obłożenie otwartych dni w miesiącu"}
         >
           {row.occupancy === null ? "—" : `${Math.round(row.occupancy * 100)}%`}
         </span>
@@ -121,7 +122,7 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
   const channel = CHANNELS[r.source];
   const n = nights(r);
   const dates = `${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
-  const description = [propertyName, channel.label, dates, nightsLabel(n)].join(", ");
+  const description = [propertyName, channel.occupied, dates, nightsLabel(n)].join(", ");
   const wide = bar.endHalf - bar.startHalf >= 2;
 
   return (
@@ -146,7 +147,7 @@ function ReservationBar({ bar, propertyName }: { bar: Bar; propertyName: string 
 /** A period closed for sale: a hatched band behind the stays, not a booking. */
 function ClosureBand({ bar, laneCount }: { bar: Bar; laneCount: number }) {
   const { reservation: r } = bar;
-  const description = `Zamknięte na rezerwacje: ${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
+  const description = `${CLOSURE_LABEL}: ${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
   return (
     <div
       role="img"
@@ -159,7 +160,7 @@ function ClosureBand({ bar, laneCount }: { bar: Bar; laneCount: number }) {
         background: "repeating-linear-gradient(135deg, #e2e8f0 0 6px, #f1f5f9 6px 12px)",
       }}
     >
-      Zamknięte
+      Zablokowane
     </div>
   );
 }

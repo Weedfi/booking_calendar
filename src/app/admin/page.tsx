@@ -5,6 +5,8 @@ import { buildDashboard, loadDashboardData } from "@/lib/admin/dashboard";
 import { loadSyncStatus, type SyncStatus } from "@/lib/admin/sync-status";
 import { requireRole } from "@/lib/auth";
 import { CHANNELS } from "@/lib/calendar/channels";
+import { CLOSURE_LABEL, CLOSURE_MIN_NIGHTS } from "@/lib/calendar/closures";
+import type { ChannelSource } from "@/lib/calendar/tape-chart";
 import { parseAdminFilters } from "@/lib/calendar/filters";
 import { formatDate, todayKey } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
@@ -59,7 +61,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <TurnoverPanel days={dashboard.turnovers} today={today} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <RangeNav filters={dashboard.filters} today={today} />
-            <Legend />
+            <Legend sources={new Set(data.channels.map((c) => c.source))} />
           </div>
           <TapeChart
             rows={dashboard.rows}
@@ -94,13 +96,20 @@ function SyncBar({ status, propertyNames }: { status: SyncStatus; propertyNames:
   );
 }
 
-function Legend() {
+const LEGEND_NOTE =
+  "Kalendarze iCal nie podają, kto i gdzie zarezerwował: rezerwacja, ręczna blokada i pobyt sprzedany w innym kanale " +
+  "wyglądają tak samo, a pobyty dzień po dniu bywają sklejone w jeden pasek. " +
+  `Bloki dłuższe niż ${CLOSURE_MIN_NIGHTS - 1} nocy (zwykle wyłączona sprzedaż) są pokazane osobno i nie liczą się do obłożenia.`;
+
+/** Only the channels that are connected, so unused colors do not show up. */
+function Legend({ sources }: { sources: Set<ChannelSource> }) {
+  const channels = (Object.keys(CHANNELS) as ChannelSource[]).filter((s) => sources.has(s));
   return (
-    <ul className="flex items-center gap-3 text-xs text-slate-600" aria-label="Kolory kanałów">
-      {Object.values(CHANNELS).map(({ label, color }) => (
-        <li key={label} className="flex items-center gap-1.5">
-          <span className="h-2.5 w-5 rounded-full" style={{ backgroundColor: color }} aria-hidden />
-          {label}
+    <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600" aria-label="Legenda">
+      {channels.map((source) => (
+        <li key={source} className="flex items-center gap-1.5">
+          <span className="h-2.5 w-5 rounded-full" style={{ backgroundColor: CHANNELS[source].color }} aria-hidden />
+          {CHANNELS[source].occupied}
         </li>
       ))}
       <li className="flex items-center gap-1.5">
@@ -109,7 +118,17 @@ function Legend() {
           style={{ background: "repeating-linear-gradient(135deg, #cbd5e1 0 3px, #f1f5f9 3px 6px)" }}
           aria-hidden
         />
-        Zamknięte
+        {CLOSURE_LABEL}
+      </li>
+      <li>
+        <span
+          className="inline-flex size-4 cursor-help items-center justify-center rounded-full border border-slate-300 text-[10px] font-semibold text-slate-500"
+          title={LEGEND_NOTE}
+          aria-label={LEGEND_NOTE}
+          role="img"
+        >
+          ?
+        </span>
       </li>
     </ul>
   );

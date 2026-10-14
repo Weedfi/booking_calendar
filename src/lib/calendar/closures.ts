@@ -12,6 +12,9 @@ type Stay = { startDate: DateKey; endDate: DateKey };
  */
 export const CLOSURE_MIN_NIGHTS = 31;
 
+/** "Zablokowane ponad 30 nocy", for legends and labels. */
+export const CLOSURE_LABEL = `Zablokowane ponad ${CLOSURE_MIN_NIGHTS - 1} nocy`;
+
 export function isClosure(stay: Stay): boolean {
   return daysBetween(stay.startDate, stay.endDate) >= CLOSURE_MIN_NIGHTS;
 }

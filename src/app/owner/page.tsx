@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/app-header";
 import { LiveUpdates } from "@/components/live-updates";
 import { requireRole } from "@/lib/auth";
 import { CHANNELS } from "@/lib/calendar/channels";
+import { CLOSURE_MIN_NIGHTS } from "@/lib/calendar/closures";
 import { daysBetween, formatDate, todayKey, type DateKey } from "@/lib/dates";
 import { loadOwnerView, monthParam, parseOwnerParams, type OwnerProperty, type OwnerStay } from "@/lib/owner/view";
 import { createClient } from "@/lib/supabase/server";
@@ -62,8 +63,8 @@ export default async function OwnerPage({ searchParams }: PageProps<"/owner">) {
 
           {view.closedUntil && (
             <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
-              <span className="font-semibold">Zamknięte na rezerwacje</span> w Booking.com do {formatDate(view.closedUntil)}.
-              Ten okres nie liczy się do obłożenia.
+              <span className="font-semibold">Zablokowane</span> w kalendarzu do {formatDate(view.closedUntil)}. To blok
+              dłuższy niż {CLOSURE_MIN_NIGHTS - 1} nocy, zwykle wyłączona sprzedaż, więc nie liczy się do obłożenia.
             </p>
           )}
 
