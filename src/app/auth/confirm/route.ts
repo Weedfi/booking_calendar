@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { sameOriginUrl } from "@/lib/redirect";
+import { sendSignInEmail } from "@/lib/sign-in-email";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -17,7 +18,14 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   let ok = false;
   if (tokenHash && type) {
-    ok = !(await supabase.auth.verifyOtp({ type, token_hash: tokenHash })).error;
+    const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    ok = !error;
+    // The invitation is the welcome; the step-by-step sign-in guide follows
+    // in a second email (the sign-in link one), so the owner can keep it.
+    const email = data.user?.email;
+    if (ok && type === "invite" && email) {
+      after(() => sendSignInEmail(email, request.nextUrl.origin).catch(() => undefined));
+    }
   } else if (code) {
     ok = !(await supabase.auth.exchangeCodeForSession(code)).error;
   }

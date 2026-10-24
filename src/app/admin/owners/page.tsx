@@ -4,6 +4,7 @@ import { loadOwners } from "@/lib/admin/manage";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { InviteForm } from "./_components/invite-form";
+import { SignInEmailButton } from "./_components/sign-in-email-button";
 
 export const metadata: Metadata = { title: "Właściciele" };
 
@@ -24,7 +25,8 @@ export default async function OwnersPage() {
           >
             <h2 className="mb-1 font-medium">Zaproś właściciela</h2>
             <p className="mb-3 text-sm text-slate-600">
-              Dostanie maila z linkiem do logowania. Potem przypisz mu mieszkania na stronie Mieszkania.
+              Dostanie zaproszenie, a po jego przyjęciu drugi mail z instrukcją logowania. Potem przypisz mu mieszkania
+              na stronie Mieszkania.
             </p>
             <InviteForm />
           </section>
@@ -62,6 +64,11 @@ export default async function OwnersPage() {
                       </ul>
                     )}
                   </div>
+                  {o.email && (
+                    <div className="mt-auto border-t border-slate-100 pt-3">
+                      <SignInEmailButton ownerId={o.id} pending={o.pending} />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

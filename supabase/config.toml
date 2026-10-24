@@ -246,11 +246,11 @@ otp_expiry = 3600
 
 # Uncomment to customize email template
 [auth.email.template.magic_link]
-subject = "Twój link do logowania – Kalendarz rezerwacji"
+subject = "Twój link i instrukcja logowania – Kalendarz rezerwacji"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.invite]
-subject = "Masz dostęp do kalendarza swoich mieszkań"
+subject = "Zaproszenie do kalendarza rezerwacji – Orzechowa Przystań"
 content_path = "./supabase/templates/invite.html"
 
 # Uncomment to customize notification email template

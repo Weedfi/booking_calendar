@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { DEMO_ACCOUNTS, isDemoMode, type DemoAccount } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { sendSignInEmail } from "@/lib/sign-in-email";
 
 export type LoginState = { status: "idle" | "sent" | "error"; message?: string };
 
@@ -17,17 +18,11 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   }
 
   const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      // Invite-only: owners are invited by the admin, nobody can sign up.
-      shouldCreateUser: false,
-      emailRedirectTo: `${origin}/auth/confirm`,
-    },
-  });
+  // Invite-only: never creates users. Someone who has not opened their
+  // invitation yet gets it again instead of a sign-in link.
+  const result = await sendSignInEmail(email, origin);
 
-  if (error?.status === 429) {
+  if (result === "rate_limited") {
     return { status: "error", message: "Za dużo prób. Odczekaj chwilę i spróbuj ponownie." };
   }
   // Any other outcome, including unknown addresses, gets the same answer so

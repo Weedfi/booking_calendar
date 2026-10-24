@@ -9,6 +9,7 @@ import { parseBookingExport } from "@/lib/import/booking-export";
 import { planImport } from "@/lib/import/plan";
 import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendSignInEmail } from "@/lib/sign-in-email";
 import { createClient } from "@/lib/supabase/server";
 import { summarize, syncNow } from "@/lib/sync/server";
 
@@ -167,6 +168,25 @@ export async function inviteOwner(_prev: ActionState, form: FormData): Promise<A
 
   refresh();
   return success(`Zaproszenie wysłane na ${parsed.value.email}.`);
+}
+
+/** Emails an owner the sign-in guide, or their invitation again if it is still unopened. */
+export async function sendOwnerSignInEmail(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
+  const id = idFrom(form);
+  if (!id) return failure("Nieprawidłowy właściciel.");
+
+  const { data, error } = await createAdminClient().auth.admin.getUserById(id);
+  const email = data.user?.email;
+  if (error || !email) return failure("Nie znaleziono adresu email tego właściciela.");
+
+  const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const result = await sendSignInEmail(email, origin);
+  if (result === "link") return success(`Instrukcja logowania wysłana na ${email}.`);
+  if (result === "invite") return success(`Zaproszenie wysłane ponownie na ${email}.`);
+  if (result === "rate_limited") return failure("Mail był wysłany przed chwilą. Spróbuj ponownie za minutę.");
+  return failure("Nie udało się wysłać maila. Spróbuj ponownie.");
 }
 
 // ---------------------------------------------------------------------------
