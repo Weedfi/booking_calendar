@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const user = await getCurrentUser();
   if (user) redirect(homePath(user.role));
 
-  const { error } = await searchParams;
+  const { error, info } = await searchParams;
 
   return (
     <main className="flex flex-1 items-center justify-center p-4">
@@ -20,6 +20,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <p className="mt-1 mb-6 text-sm text-slate-600">
           Zaloguj się hasłem albo linkiem wysłanym na email.
         </p>
+        {info === "accepted" && (
+          <p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
+            Zaproszenie zostało już przyjęte. Zaloguj się hasłem albo linkiem na email.
+          </p>
+        )}
         {error === "link" && (
           <p role="alert" className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
             Ten link do logowania jest nieprawidłowy lub wygasł. Poproś o nowy.

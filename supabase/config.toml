@@ -249,6 +249,10 @@ otp_expiry = 3600
 subject = "Twój link i instrukcja logowania – Kalendarz rezerwacji"
 content_path = "./supabase/templates/magic_link.html"
 
+[auth.email.template.confirmation]
+subject = "Zaproszenie do kalendarza rezerwacji – Orzechowa Przystań"
+content_path = "./supabase/templates/confirmation.html"
+
 [auth.email.template.invite]
 subject = "Zaproszenie do kalendarza rezerwacji – Orzechowa Przystań"
 content_path = "./supabase/templates/invite.html"

@@ -63,14 +63,14 @@
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 24px">
                   <tr>
                     <td style="border-radius: 10px; background-color: #2f5233">
-                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" style="display: inline-block; padding: 14px 28px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px">Przyjmij zaproszenie</a>
+                      <a href="{{ .SiteURL }}/invite?token={{ .Data.invite_token }}" style="display: inline-block; padding: 14px 28px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px">Przyjmij zaproszenie</a>
                     </td>
                   </tr>
                 </table>
-                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; font-size: 14px; color: #475569">Zaproszenie dotyczy adresu <strong>{{ .Email }}</strong> i jest ważne przez ograniczony czas. Jeśli wygaśnie, wejdź na <a href="{{ .SiteURL }}/login" style="color: #2f5233; font-weight: bold">{{ .SiteURL }}/login</a>, wybierz zakładkę <strong style="color: #1f2d22">„Link na email”</strong> i wpisz ten adres, a wyślemy je ponownie.</p>
+                <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; font-size: 14px; color: #475569">Zaproszenie dotyczy adresu <strong>{{ .Email }}</strong> i <strong>nie wygasa</strong>: możesz z niego skorzystać w dowolnym momencie. Po przyjęciu przycisk przestaje działać, a dalej logujesz się tak, jak opisuje drugi mail.</p>
                 <p style="margin: 0 0 20px; font-size: 12px; line-height: 1.6; color: #64748b">
                   Przycisk nie działa? Skopiuj ten adres do przeglądarki:<br />
-                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" style="color: #2f5233; word-break: break-all">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite</a>
+                  <a href="{{ .SiteURL }}/invite?token={{ .Data.invite_token }}" style="color: #2f5233; word-break: break-all">{{ .SiteURL }}/invite?token={{ .Data.invite_token }}</a>
                 </p>
                 <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6">
                   Pozdrawiamy serdecznie,<br />

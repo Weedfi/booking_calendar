@@ -9,7 +9,7 @@ import { parseBookingExport } from "@/lib/import/booking-export";
 import { planImport } from "@/lib/import/plan";
 import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendSignInEmail } from "@/lib/sign-in-email";
+import { sendInvite, sendSignInEmail } from "@/lib/sign-in-email";
 import { createClient } from "@/lib/supabase/server";
 import { summarize, syncNow } from "@/lib/sync/server";
 
@@ -154,17 +154,12 @@ export async function inviteOwner(_prev: ActionState, form: FormData): Promise<A
   if (!parsed.ok) return invalid(parsed.errors, form);
 
   const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  // Inviting needs the Auth admin API, hence the secret-key client.
-  // The profile row (role 'owner') is created by the on_auth_user_created trigger.
-  const { error } = await createAdminClient().auth.admin.inviteUserByEmail(parsed.value.email, {
-    data: { full_name: parsed.value.full_name },
-    redirectTo: `${origin}/auth/confirm`,
-  });
-
-  if (error?.code === "email_exists" || /already been registered/i.test(error?.message ?? "")) {
-    return invalid({ email: "Ta osoba ma już konto." }, form);
-  }
-  if (error) return failure("Nie udało się wysłać zaproszenia. Spróbuj ponownie.");
+  // Inviting needs the Auth admin API (secret key). The profile row (role
+  // 'owner') is created by the on_auth_user_created trigger.
+  const result = await sendInvite(parsed.value.email, origin, parsed.value.full_name);
+  if (result === "exists") return invalid({ email: "Ta osoba ma już konto." }, form);
+  if (result === "rate_limited") return failure("Zaproszenie było wysłane przed chwilą. Spróbuj ponownie za minutę.");
+  if (result === "error") return failure("Nie udało się wysłać zaproszenia. Spróbuj ponownie.");
 
   refresh();
   return success(`Zaproszenie wysłane na ${parsed.value.email}.`);
