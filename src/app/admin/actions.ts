@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { headers } from "next/headers";
-import { parseChannel, parseInvite, parseProperty, type FieldErrors } from "@/lib/admin/forms";
+import { parseChannel, parseInvite, parseOwnerEdit, parseProperty, type FieldErrors } from "@/lib/admin/forms";
 import { requireRole } from "@/lib/auth";
 import { isDateKey, todayKey } from "@/lib/dates";
 import { parseBookingExport } from "@/lib/import/booking-export";
@@ -168,6 +168,53 @@ export async function inviteOwner(_prev: ActionState, form: FormData): Promise<A
 
   refresh();
   return success(`Zaproszenie wysłane na ${parsed.value.email}.`);
+}
+
+/**
+ * Edits an owner: name, sign-in email and which properties they own. A new
+ * email takes effect at once (no confirmation round trip): the admin vouches
+ * for it, as with an invitation. Properties left unchecked lose this owner.
+ */
+export async function updateOwner(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
+  const id = idFrom(form);
+  if (!id) return failure("Nieprawidłowy właściciel.");
+  const parsed = parseOwnerEdit(form);
+  if (!parsed.ok) return invalid(parsed.errors, form);
+  const { email, full_name, property_ids } = parsed.value;
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", id).maybeSingle();
+  if (profile?.role !== "owner") return failure("Można edytować tylko właścicieli.");
+
+  const admin = createAdminClient();
+  const { data: current, error: userError } = await admin.auth.admin.getUserById(id);
+  if (userError || !current.user) return failure("Nie znaleziono konta tego właściciela.");
+  if (current.user.email?.toLowerCase() !== email) {
+    const { error } = await admin.auth.admin.updateUserById(id, { email, email_confirm: true });
+    if (error?.code === "email_exists" || /already been registered/i.test(error?.message ?? "")) {
+      return invalid({ email: "Ten adres ma już inne konto." }, form);
+    }
+    if (error) return failure("Nie udało się zmienić adresu email. Spróbuj ponownie.");
+  }
+
+  const { error: nameError } = await supabase.from("profiles").update({ full_name }).eq("id", id);
+  if (nameError) return failure("Nie udało się zapisać zmian.");
+
+  // Assign the checked properties (taking them from another owner if needed),
+  // then release the ones this owner had but are no longer checked.
+  if (property_ids.length > 0) {
+    const { error } = await supabase.from("properties").update({ owner_id: id }).in("id", property_ids);
+    if (error) return failure("Nie udało się zapisać mieszkań.");
+  }
+  let release = supabase.from("properties").update({ owner_id: null }).eq("owner_id", id);
+  if (property_ids.length > 0) release = release.not("id", "in", `(${property_ids.join(",")})`);
+  const { error: releaseError } = await release;
+  if (releaseError) return failure("Nie udało się zapisać mieszkań.");
+
+  refresh();
+  return success("Zmiany zapisane.");
 }
 
 /**

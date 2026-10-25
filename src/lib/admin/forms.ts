@@ -96,6 +96,17 @@ export function parseInvite(form: FormData): Parsed<InviteInput> {
   return { ok: true, value: { email, full_name: fullName } };
 }
 
+export type OwnerEditInput = InviteInput & { property_ids: string[] };
+
+/** The owner edit form: name, sign-in email and the properties they own. */
+export function parseOwnerEdit(form: FormData): Parsed<OwnerEditInput> {
+  const base = parseInvite(form);
+  const ids = form.getAll("property_ids").map(String);
+  if (!base.ok) return base;
+  if (!ids.every((id) => UUID.test(id))) return { ok: false, errors: { property_ids: "Nieznane mieszkanie." } };
+  return { ok: true, value: { ...base.value, property_ids: [...new Set(ids)] } };
+}
+
 /**
  * Shows enough of an iCal URL to tell feeds apart, without revealing the
  * secret token in it: "ical.booking.com/…a1b2".

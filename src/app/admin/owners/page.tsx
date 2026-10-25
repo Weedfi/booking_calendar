@@ -4,6 +4,7 @@ import { loadOwners } from "@/lib/admin/manage";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { InviteForm } from "./_components/invite-form";
+import { OwnerEditForm, type PropertyChoice } from "./_components/owner-edit-form";
 import { SignInEmailButton } from "./_components/sign-in-email-button";
 import { deleteOwner } from "../actions";
 import { DeleteButton } from "../_components/delete-button";
@@ -12,7 +13,20 @@ export const metadata: Metadata = { title: "Właściciele" };
 
 export default async function OwnersPage() {
   const user = await requireRole("admin");
-  const owners = await loadOwners(await createClient());
+  const supabase = await createClient();
+  const [owners, propertiesResult] = await Promise.all([
+    loadOwners(supabase),
+    supabase.from("properties").select("id, name, color, owner_id").order("name"),
+  ]);
+  if (propertiesResult.error) throw propertiesResult.error;
+  const ownerName = new Map(owners.map((o) => [o.id, o.name]));
+  const properties: PropertyChoice[] = propertiesResult.data.map((p) => ({
+    id: p.id,
+    name: p.name,
+    color: p.color,
+    ownerId: p.owner_id,
+    ownerName: p.owner_id ? (ownerName.get(p.owner_id) ?? null) : null,
+  }));
 
   return (
     <>
@@ -66,6 +80,12 @@ export default async function OwnersPage() {
                       </ul>
                     )}
                   </div>
+                  <details className="border-t border-slate-100 pt-3">
+                    <summary className="cursor-pointer text-sm font-medium text-slate-700">Edytuj właściciela</summary>
+                    <div className="mt-3">
+                      <OwnerEditForm owner={{ id: o.id, name: o.name, email: o.email }} properties={properties} />
+                    </div>
+                  </details>
                   <div className="mt-auto flex flex-wrap items-start justify-between gap-2 border-t border-slate-100 pt-3">
                     {o.email && <SignInEmailButton ownerId={o.id} pending={o.pending} />}
                     <div className="ml-auto">

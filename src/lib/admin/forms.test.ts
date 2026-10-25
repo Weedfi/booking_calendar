@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { maskUrl, parseChannel, parseInvite, parseProperty } from "./forms";
+import { maskUrl, parseChannel, parseInvite, parseOwnerEdit, parseProperty } from "./forms";
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -71,5 +71,35 @@ describe("maskUrl", () => {
 
   it("never throws", () => {
     expect(maskUrl("garbage")).toBe("…");
+  });
+});
+
+describe("parseOwnerEdit", () => {
+  const edit = (ids: string[]) => {
+    const data = form({ email: "Anna@Example.com", full_name: " Anna Nowak " });
+    for (const id of ids) data.append("property_ids", id);
+    return data;
+  };
+
+  it("keeps the name, email and each selected property once", () => {
+    expect(parseOwnerEdit(edit([PROPERTY_ID, PROPERTY_ID]))).toEqual({
+      ok: true,
+      value: { email: "anna@example.com", full_name: "Anna Nowak", property_ids: [PROPERTY_ID] },
+    });
+  });
+
+  it("allows an owner with no properties", () => {
+    expect(parseOwnerEdit(edit([]))).toMatchObject({ ok: true, value: { property_ids: [] } });
+  });
+
+  it("rejects a property id that is not a UUID", () => {
+    expect(parseOwnerEdit(edit(["1; drop table"])).ok).toBe(false);
+  });
+
+  it("validates the name and email like an invitation", () => {
+    expect(parseOwnerEdit(form({ email: "nope", full_name: "" }))).toMatchObject({
+      ok: false,
+      errors: { email: expect.any(String), full_name: expect.any(String) },
+    });
   });
 });
