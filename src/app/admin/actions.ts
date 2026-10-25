@@ -11,6 +11,9 @@ import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendInvite, sendSignInEmail } from "@/lib/sign-in-email";
 import { createClient } from "@/lib/supabase/server";
+import { FeedFetchError, fetchIcal } from "@/lib/sync/fetch-ical";
+import { compareFeed, type InspectRow } from "@/lib/sync/inspect";
+import { InvalidFeedError, parseIcal } from "@/lib/sync/parse-ical";
 import { summarize, syncNow } from "@/lib/sync/server";
 
 /**
@@ -141,6 +144,49 @@ export async function deleteChannel(_prev: ActionState, form: FormData): Promise
 
   refresh();
   return success("Kanał usunięty.");
+}
+
+export type InspectState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  | { status: "done"; checkedAt: string; rows: InspectRow[] };
+
+/**
+ * Fetches a channel's feed right now and lines it up with what the app shows,
+ * without saving anything. Read-only, so it also works in the demo. The URL
+ * never leaves the server.
+ */
+export async function inspectChannel(_prev: InspectState, form: FormData): Promise<InspectState> {
+  await requireRole("admin");
+  const id = idFrom(form);
+  if (!id) return { status: "error", message: "Nieznany kanał." };
+
+  const supabase = await createClient();
+  const { data: channel } = await supabase.from("channels").select("ical_url").eq("id", id).maybeSingle();
+  if (!channel) return { status: "error", message: "Nie znaleziono kanału." };
+
+  let feed;
+  try {
+    feed = parseIcal(await fetchIcal(channel.ical_url));
+  } catch (error) {
+    // These messages never contain the URL; anything else gets a generic one.
+    const known = error instanceof FeedFetchError || error instanceof InvalidFeedError;
+    return { status: "error", message: `Nie udało się pobrać kalendarza: ${known ? error.message : "nieznany błąd"}` };
+  }
+
+  const { data: stored, error } = await supabase
+    .from("reservations")
+    .select("external_uid, start_date, end_date, summary")
+    .eq("channel_id", id)
+    .eq("status", "active");
+  if (error) return { status: "error", message: "Nie udało się odczytać rezerwacji." };
+
+  const rows = compareFeed(
+    feed.events,
+    stored.map((r) => ({ externalUid: r.external_uid, startDate: r.start_date, endDate: r.end_date, summary: r.summary })),
+    todayKey(),
+  );
+  return { status: "done", checkedAt: new Date().toISOString(), rows };
 }
 
 // ---------------------------------------------------------------------------
