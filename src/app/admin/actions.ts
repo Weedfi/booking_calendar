@@ -149,7 +149,13 @@ export async function deleteChannel(_prev: ActionState, form: FormData): Promise
 export type InspectState =
   | { status: "idle" }
   | { status: "error"; message: string }
-  | { status: "done"; checkedAt: string; rows: InspectRow[] };
+  | {
+      status: "done";
+      checkedAt: string;
+      rows: InspectRow[];
+      /** Raw counts from the file, to tell an empty export from events the app ignored. */
+      feed: { events: number; past: number; skipped: number };
+    };
 
 /**
  * Fetches a channel's feed right now and lines it up with what the app shows,
@@ -181,12 +187,19 @@ export async function inspectChannel(_prev: InspectState, form: FormData): Promi
     .eq("status", "active");
   if (error) return { status: "error", message: "Nie udało się odczytać rezerwacji." };
 
+  const today = todayKey();
   const rows = compareFeed(
     feed.events,
     stored.map((r) => ({ externalUid: r.external_uid, startDate: r.start_date, endDate: r.end_date, summary: r.summary })),
-    todayKey(),
+    today,
   );
-  return { status: "done", checkedAt: new Date().toISOString(), rows };
+  const past = feed.events.filter((e) => e.endDate <= today).length;
+  return {
+    status: "done",
+    checkedAt: new Date().toISOString(),
+    rows,
+    feed: { events: feed.events.length, past, skipped: feed.skipped },
+  };
 }
 
 // ---------------------------------------------------------------------------

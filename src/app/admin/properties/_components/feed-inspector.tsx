@@ -62,6 +62,18 @@ function Result({ state }: { state: Extract<InspectState, { status: "done" }> })
           ))}
         </ul>
       )}
+      <p className="mt-1 text-slate-500">
+        W pliku z kalendarza: {state.feed.events} {state.feed.events === 1 ? "wydarzenie" : "wydarzeń"}
+        {state.feed.past > 0 && `, w tym ${state.feed.past} z przeszłości`}
+        {state.feed.skipped > 0 && `, ${state.feed.skipped} pominiętych (bez daty lub anulowanych)`}.
+      </p>
+      {state.feed.events === 0 && state.feed.skipped === 0 && (
+        <p className="mt-2 rounded bg-amber-50 p-2 text-amber-900">
+          Booking.com wysyła pusty kalendarz: dla tego linku nie ma żadnych rezerwacji ani zablokowanych dni. Sprawdź
+          w extranecie, czy link eksportu pochodzi z tego samego pokoju, w którym blokujesz noce, i czy noce są
+          zamknięte dla całego pokoju (0 pokoi do sprzedaży).
+        </p>
+      )}
       <p className="mt-2 text-slate-500">
         {missing > 0
           ? "Część terminów jest już w kalendarzu Bookingu, ale jeszcze nie w aplikacji: kliknij „Synchronizuj to mieszkanie”."
