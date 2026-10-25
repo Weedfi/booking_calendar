@@ -5,6 +5,8 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { InviteForm } from "./_components/invite-form";
 import { SignInEmailButton } from "./_components/sign-in-email-button";
+import { deleteOwner } from "../actions";
+import { DeleteButton } from "../_components/delete-button";
 
 export const metadata: Metadata = { title: "Właściciele" };
 
@@ -64,11 +66,17 @@ export default async function OwnersPage() {
                       </ul>
                     )}
                   </div>
-                  {o.email && (
-                    <div className="mt-auto border-t border-slate-100 pt-3">
-                      <SignInEmailButton ownerId={o.id} pending={o.pending} />
+                  <div className="mt-auto flex flex-wrap items-start justify-between gap-2 border-t border-slate-100 pt-3">
+                    {o.email && <SignInEmailButton ownerId={o.id} pending={o.pending} />}
+                    <div className="ml-auto">
+                      <DeleteButton
+                        action={deleteOwner}
+                        id={o.id}
+                        label="Usuń właściciela"
+                        confirmText={deleteConfirmText(o.name, o.propertyNames.length)}
+                      />
                     </div>
-                  )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -77,4 +85,12 @@ export default async function OwnersPage() {
       </main>
     </>
   );
+}
+
+function deleteConfirmText(name: string, properties: number): string {
+  const keep =
+    properties > 0
+      ? ` Przypisane mieszkania (${properties}) i ich rezerwacje zostaną w systemie, bez właściciela.`
+      : "";
+  return `Usunąć właściciela ${name}? Ta osoba straci dostęp do kalendarza i nie zaloguje się już ani hasłem, ani linkiem.${keep} Tej operacji nie można cofnąć.`;
 }

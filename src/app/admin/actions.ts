@@ -170,6 +170,27 @@ export async function inviteOwner(_prev: ActionState, form: FormData): Promise<A
   return success(`Zaproszenie wysłane na ${parsed.value.email}.`);
 }
 
+/**
+ * Removes an owner and with it their sign-in: the Auth user is deleted, the
+ * profile goes with it (ON DELETE CASCADE) and their properties stay, with no
+ * owner (ON DELETE SET NULL). Only owners can be removed here, never admins.
+ */
+export async function deleteOwner(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
+  const id = idFrom(form);
+  if (!id) return failure("Nieprawidłowy właściciel.");
+
+  const { data: profile } = await (await createClient()).from("profiles").select("role").eq("id", id).maybeSingle();
+  if (profile?.role !== "owner") return failure("Można usuwać tylko właścicieli.");
+
+  const { error } = await createAdminClient().auth.admin.deleteUser(id);
+  if (error) return failure("Nie udało się usunąć właściciela. Spróbuj ponownie.");
+
+  refresh();
+  return success("Właściciel usunięty.");
+}
+
 /** Emails an owner the sign-in guide, or their invitation again if it is still unopened. */
 export async function sendOwnerSignInEmail(_prev: ActionState, form: FormData): Promise<ActionState> {
   const blocked = await blockedWrite();
