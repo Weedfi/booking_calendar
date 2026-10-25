@@ -6,9 +6,11 @@ import { FeedFetchError, fetchIcal } from "./fetch-ical";
 const SECRET_PATH = "/export/secret-token-abc123.ics";
 let server: Server;
 let base: string;
+let lastCacheControl: string | undefined;
 
 beforeAll(async () => {
   server = createServer((req, res) => {
+    lastCacheControl = req.headers["cache-control"];
     if (req.url === SECRET_PATH) {
       res.writeHead(200, { "content-type": "text/calendar" });
       res.end("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n");
@@ -26,6 +28,11 @@ afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 describe("fetchIcal", () => {
   it("returns the feed body", async () => {
     await expect(fetchIcal(base + SECRET_PATH)).resolves.toContain("BEGIN:VCALENDAR");
+  });
+
+  it("asks caches on the way for a fresh copy", async () => {
+    await fetchIcal(base + SECRET_PATH);
+    expect(lastCacheControl).toBe("no-cache");
   });
 
   it("reports HTTP errors without leaking the URL", async () => {

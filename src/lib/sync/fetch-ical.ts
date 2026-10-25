@@ -25,7 +25,12 @@ export const fetchIcal: FetchIcal = async (url) => {
   let response: Response;
   try {
     response = await fetch(url, {
-      headers: { accept: "text/calendar, text/plain;q=0.9, */*;q=0.1" },
+      headers: {
+        accept: "text/calendar, text/plain;q=0.9, */*;q=0.1",
+        // Ask any cache between us and the channel for a fresh copy.
+        "cache-control": "no-cache",
+        pragma: "no-cache",
+      },
       cache: "no-store",
       redirect: "follow",
       signal: AbortSignal.timeout(TIMEOUT_MS),
