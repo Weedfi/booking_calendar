@@ -66,6 +66,13 @@ export function parseChannel(form: FormData, { allowHttp = false } = {}): Parsed
   return { ok: true, value: { property_id: propertyId, source, ical_url: url } };
 }
 
+/** A new export link for an existing channel. */
+export function parseChannelUrl(form: FormData, { allowHttp = false } = {}): Parsed<{ ical_url: string }> {
+  const url = text(form, "ical_url");
+  const error = icalUrlError(url, allowHttp);
+  return error ? { ok: false, errors: { ical_url: error } } : { ok: true, value: { ical_url: url } };
+}
+
 function icalUrlError(url: string, allowHttp: boolean): string | null {
   if (!url) return "Wklej link eksportu iCal.";
   let parsed: URL;

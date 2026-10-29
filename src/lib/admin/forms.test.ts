@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { maskUrl, parseChannel, parseInvite, parseOwnerEdit, parseProperty } from "./forms";
+import { maskUrl, parseChannel, parseChannelUrl, parseInvite, parseOwnerEdit, parseProperty } from "./forms";
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -101,5 +101,19 @@ describe("parseOwnerEdit", () => {
       ok: false,
       errors: { email: expect.any(String), full_name: expect.any(String) },
     });
+  });
+});
+
+describe("parseChannelUrl", () => {
+  it("accepts an https export link", () => {
+    expect(parseChannelUrl(form({ ical_url: " https://ical.booking.com/v1/export?t=abc " }))).toEqual({
+      ok: true,
+      value: { ical_url: "https://ical.booking.com/v1/export?t=abc" },
+    });
+  });
+
+  it("rejects an empty or non-https link", () => {
+    expect(parseChannelUrl(form({ ical_url: "" })).ok).toBe(false);
+    expect(parseChannelUrl(form({ ical_url: "http://ical.booking.com/x" })).ok).toBe(false);
   });
 });

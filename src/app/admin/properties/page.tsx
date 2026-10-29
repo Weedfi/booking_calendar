@@ -9,6 +9,7 @@ import { deleteChannel, deleteProperty } from "../actions";
 import { DeleteButton } from "../_components/delete-button";
 import { RefreshButton } from "../_components/refresh-button";
 import { ChannelForm } from "./_components/channel-form";
+import { ChannelUrlForm } from "./_components/channel-url-form";
 import { FeedInspector } from "./_components/feed-inspector";
 import { PropertyForm } from "./_components/property-form";
 
@@ -136,7 +137,10 @@ function ChannelRow({ channel: c, now }: { channel: ManagedChannel; now: Date })
           confirmText={`Usunąć kanał ${CHANNELS[c.source].label} i jego rezerwacje?`}
         />
       </span>
-      <FeedInspector channelId={c.id} />
+      <div className="flex w-full flex-col gap-1">
+        <ChannelUrlForm channelId={c.id} />
+        <FeedInspector channelId={c.id} />
+      </div>
     </li>
   );
 }

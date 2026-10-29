@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { headers } from "next/headers";
-import { parseChannel, parseInvite, parseOwnerEdit, parseProperty, type FieldErrors } from "@/lib/admin/forms";
+import { parseChannel, parseChannelUrl, parseInvite, parseOwnerEdit, parseProperty, type FieldErrors } from "@/lib/admin/forms";
 import { requireRole } from "@/lib/auth";
 import { isDateKey, todayKey } from "@/lib/dates";
 import { parseBookingExport } from "@/lib/import/booking-export";
@@ -130,6 +130,35 @@ export async function addChannel(_prev: ActionState, form: FormData): Promise<Ac
   return summary.ok
     ? success(`Kanał dodany i zsynchronizowany. Zaimportowane pobyty: ${summary.upserted}.`)
     : failure("Kanał dodany, ale pierwsza synchronizacja się nie udała. Sprawdź link; błąd widać przy kanale.");
+}
+
+/**
+ * Swaps a channel's export link and keeps everything else: the reservations
+ * stay attached (feeds keep their event UIDs), so past stays are not lost the
+ * way they are when a channel is deleted and added again.
+ */
+export async function updateChannelUrl(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const blocked = await blockedWrite();
+  if (blocked) return blocked;
+  const id = idFrom(form);
+  if (!id) return failure("Nieznany kanał.");
+  const parsed = parseChannelUrl(form, { allowHttp: process.env.NODE_ENV !== "production" });
+  if (!parsed.ok) return invalid(parsed.errors, form);
+
+  const supabase = await createClient();
+  const { data: channel, error } = await supabase
+    .from("channels")
+    .update({ ical_url: parsed.value.ical_url, last_sync_error: null })
+    .eq("id", id)
+    .select("property_id")
+    .single();
+  if (error || !channel) return failure("Nie udało się zmienić linku.");
+
+  const summary = summarize(await syncNow("manual", [channel.property_id]));
+  refresh();
+  return summary.ok
+    ? success("Link zmieniony i zsynchronizowany.")
+    : failure("Link zmieniony, ale synchronizacja się nie udała. Sprawdź link; błąd widać przy kanale.");
 }
 
 export async function deleteChannel(_prev: ActionState, form: FormData): Promise<ActionState> {
